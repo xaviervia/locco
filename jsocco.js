@@ -126,7 +126,12 @@ jsocco = function (pattern, options) {
       fileName: destinationFileName
         .substring(
           folderPath.length + 1, 
-          destinationFileName.length - 5)
+          destinationFileName.length - 5),
+      breadcrumbs: folderPath
+        .substring(options.path.length + 1)
+        .split("/")
+        .map(function (token) { return ".." })
+        .join("/")
     }
 
     // Get the Mustache template from the package's dir

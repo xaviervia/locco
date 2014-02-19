@@ -5,12 +5,13 @@ var vows      = require("vows"),
     marked    = require("marked"),
     fs        = require("fs"),
     mustache  = require("mustache"),
-    rm        = require("rimraf");
+    rm        = require("rimraf"),
+    mkpath    = require("mkpath");
 
 vows.describe("jsocco(pattern [, options])").addBatch({
   'tmp/*.js | tmp/1.js > var i;': {
     'should parse the file contents, create the doc folder, write the output': function () {
-      fs.mkdirSync("tmp");
+      mkpath.sync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
       var files  = jsocco( "tmp/*.js" );
       var result = fs.readFileSync("doc/tmp/1.js.html").toString();
@@ -35,7 +36,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
 
   'different destination folder': {
     'should do the same but for the other folder': function () {
-      fs.mkdirSync("tmp");
+      mkpath.sync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
       var files  = jsocco( "tmp/*.js", {path: "docs"} );
       var result = fs.readFileSync("docs/tmp/1.js.html").toString();
@@ -58,15 +59,16 @@ vows.describe("jsocco(pattern [, options])").addBatch({
     }
   },
 
-/*
-  'base folder name exclusion'
+  'base folder name exclusion': {
+    'should exclude the base folder from the final folder name': "pending"
+  },
 
-  'extension exclusion'
+  'extension exclusion': "pending",
 
-  'change template html'
+  'change template html': "pending",
 
-  'add files to generation'
+  'add files to generation': "pending",
 
-  'extra data to the templates'
-*/
+  'extra data to the templates': "pending"
+
 }).export(module);
