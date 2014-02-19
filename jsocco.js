@@ -147,12 +147,32 @@ jsocco.parse = function (text, language) {
 
   text.split("\n").forEach(function (line, index, lines) {
 
-    console.log(line.substring(2));
-
     var current = {};
     
     // There is a comment in here?
-    if (line.indexOf("//") != -1 && !jsocco.isQuoted()) {
+    if (line.indexOf("//") != -1 && !jsocco.isQuoted(line.indexOf("//"), line)) {
+
+      // There is code prior to the markdown?
+      if (line.substring(0, line.indexOf("//")).trim().length > 0) {
+        var priorCode = {
+          mode: "code",
+          text: line.substring(0, line.indexOf("//"))
+        }
+
+        // If there was something before and wasnt code, resolve and clean and 
+        // stack and resolve and clean
+        if (stack.length > 0 && stack[stack.length - 1].mode != "code") {
+          result += jsocco._resolve(stack, language);
+          result += jsocco._resolve([priorCode], language);
+          stack   = [];
+        }
+
+        // If there was something before and was code, push
+        else if (stack.length > 0 && stack[stack.length - 1].mode == "code") 
+          stack.push(priorCode);
+        
+      }
+      
       current.mode = "markdown";
       current.text = line.substring(line.indexOf("//") + 3);
     }    
@@ -162,8 +182,6 @@ jsocco.parse = function (text, language) {
       current.mode = "code";
       current.text = line;
     }
-
-    console.log("loop?");
 
     // There is a previous item and is of different mode
     if (index > 0 && stack[stack.length - 1].mode != current.mode) {

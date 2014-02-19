@@ -7,43 +7,44 @@ var vows      = require("vows"),
 vows.describe("jsocco").addBatch({
   '.parse(text [, language])': {
 
-    /*
     'var code;': {
       topic: function () {
         return jsocco.parse("var code;");
       },
 
       'is the result from highlight': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
           "<pre><code>" + highlight.highlight("js", "var code;").value + "</code></pre>",
 
           content);
       }
     },
-*/
+
     '// *something*': {
       topic: function () {
         return jsocco.parse("// *something*");
       },
 
-      'jeje': function (content) {
-        throw content;
-      }
-      /*topic: function () {
-        return jsocco.parse("// *something*");
-      },
+      'should be marked': function (content) {
+        if (content instanceof Error) 
+          throw content;
 
-      'is the result from marked without the comment symbol': function (content) {
         assert.equal(marked("*something*"), content);
-      }*/
-    }
-/*
+      }
+    },
+
     '   // *something*': {
       topic: function () {
         return jsocco.parse("   // *something*");
       },
 
       'is the result from marked without the comment symbol': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
           marked("*something*"),
 
@@ -57,6 +58,9 @@ vows.describe("jsocco").addBatch({
       },
 
       'is the result from highlight since the comment is part of a string': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
           "<pre><code>" + highlight.highlight("js", '"   // *something*"').value + "</code></pre>",
 
@@ -70,6 +74,9 @@ vows.describe("jsocco").addBatch({
       },
 
       'highlight first line, mark second': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
           "<pre><code>" + highlight.highlight("js", "var e;").value + "</code></pre>\n" + 
           marked("*this*"),
@@ -84,14 +91,17 @@ vows.describe("jsocco").addBatch({
       },
 
       'highlight both lines, end in marked': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", "var n;\nn=3").value + "</code></pre>\n" + 
+          "<pre><code>" + highlight.highlight("js", "var n;\nn=3;").value + "</code></pre>\n" + 
           marked("_je_"),
 
           content);
       }
     },
-
+/*
     '// ```js\nvar i;\n```': {
       topic: function () {
         return jsocco.parse("// ```js\nvar i;\n```");
