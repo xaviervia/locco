@@ -1,0 +1,264 @@
+var highlight = require("highlight.js"),
+    marked    = require("marked"),
+    fs        = require("fs"),
+    glob      = require("glob"),
+    mkpath    = require("mkpath");
+
+//
+// jsocco
+// ======
+//
+// [Docco](//github.com/jashkenas/docco) port that doesn't depend on 
+// [Pygments](http://pygments.org/).
+//
+// ### Installation
+//
+// `npm install git://github.com/xaviervia/jsocco.git --save`
+//
+// Test
+// ----
+//
+//     grunt vows
+//
+// Usage
+// -----
+//
+// ### jsocco( String pattern [, Object options ] )
+//
+// To parse a series of JavaScript files using a [`minimatch`](https://github.com/isaacs/minimatch) 
+// pattern from the folders within the `js` directory. The resulting HTML files will be output in
+// the default `doc` directory.
+//
+// ```js
+// var jsocco = require("jsocco");
+//
+// var listOfFiles = jsocco("js/**/*.js");
+// ```
+//
+// The `listOfFiles` variable will be an array containing the parsed files.
+//
+// > Jsocco is an entirely synchronous tool.
+//
+// ### Options
+//
+// The second, optional argument allows you to configure both the output folder and
+// a base folder to be excluded from the hierarchy in the output files.
+//
+// #### `path`
+//
+// Sets the path of the output folder.
+//
+// ```js
+// var jsocco = require("jsocco");
+//
+// var listOfFiles = jsocco("js/**/*.js", {path: "documentation"});
+// ```
+//
+// #### `base`
+//
+// Sets the path to be excluded in the output files names. For example, if
+// your project source files are all contained in a `src` directory, setting
+// the pattern to `src/**/*js` and the `base` to `src` will produce the files
+// to be output directly into the `doc` directory discarding the `src` prefix. 
+// A file named `src/data.js` will be parsed into `doc/data.js` instead of the
+// default behavior `doc/src/data.js`.
+//
+// If some file, for some reason, does not match the `base` path, the `base` option
+// will be ignored.
+//
+// ```js
+// var jsocco = require("jsocco");
+//
+// var listOfFiles = jsocco("src/**/*.js", {base: "src"});
+// ```
+//
+// #### Arguments
+//
+// - String pattern
+// - _optional_ Object options
+//   - path: String destinationPath
+//   - base: String baseDirectoryToExclude
+//
+// #### Returns
+//
+// - Array parsedFiles
+//
+jsocco = function (pattern, options) {
+  options       = options || jsocco.defaults;
+  options.path  = options.path || jsocco.defaults.path;
+
+  var fileList = glob.sync(pattern);
+  fileList.forEach(function (file) {
+    var destinationFileName;
+
+    if (options.base && 
+      options.base.length > 0 && 
+      file.indexOf(options.base) == 0) 
+      destinationFileName = options.path + "/" + file.substring(options.base.length - 1) + ".html";
+    else
+      destinationFileName = options.path + "/" + file + ".html";
+
+    var content = fs.readFileSync(file).toString();
+    var html = jsocco.parse(content);
+    console.log(html);
+
+    console.log(__dirname);
+    var folderPath = destinationFileName.split("/")
+      .slice(0, destinationFileName.split("/").length - 1)
+      .join("/");
+
+    mkpath.sync(folderPath);
+    fs.writeFileSync(
+      destinationFileName,
+      html);
+  });
+
+  return fileList;
+}
+
+jsocco.defaults = {
+  path: "doc"
+}
+
+
+/*
+ * Methods
+ * -------
+ *
+ * ### parse( String text [, String language] )
+ *
+ * Returns HTML code from the `text`, parsed with `marked` inside the comments and
+ * with `highlight.js` for the rest of the code. If no language identifier is passed,
+ * `js` is assumed.
+ *
+ * #### Arguments
+ *
+ * - String text
+ * - _optional_ String language
+ *
+ * #### Returns
+ *
+ * - String html
+ *
+ */
+jsocco.parse = function (text, language) {
+  var result  = "";
+  var stack   = [];
+
+  text.split("\n").forEach(function (line, index, lines) {
+
+    console.log(line.substring(2));
+
+    var current = {};
+    
+    // There is a comment in here?
+    if (line.indexOf("//") != -1 && !jsocco.isQuoted()) {
+      current.mode = "markdown";
+      current.text = line.substring(line.indexOf("//") + 3);
+    }    
+
+    // There is no comment, just javascript
+    else {
+      current.mode = "code";
+      current.text = line;
+    }
+
+    console.log("loop?");
+
+    // There is a previous item and is of different mode
+    if (index > 0 && stack[stack.length - 1].mode != current.mode) {
+      result += jsocco._resolve(stack, language);
+      stack = [];
+    }
+
+    // Add to the stack
+    stack.push(current);
+
+    // Was it the last?
+    if (index == lines.length - 1)
+      result += jsocco._resolve(stack, language);
+
+  });
+
+  return result.substring(1);
+}
+
+jsocco._resolve = function (stack, language) {
+
+  // Resolve joining with "\n";
+  switch(stack[stack.length - 1].mode) {
+    case "markdown":
+      return "\n" + 
+        marked(
+          stack.map(function (token) { 
+            return token.text; 
+          })
+          .join("\n"));
+  
+      break;
+
+    case "code": 
+      return "\n<pre><code>" + 
+        highlight.highlight(
+          language ? language : "js",
+          stack.map(function (token) {
+            return token.text;
+          })
+          .join("\n")
+        )
+        .value +
+        "</code></pre>";  
+      break;
+  
+  }
+}
+
+/* 
+ * readFile( String path )
+ * -----------------------
+ *
+ * Reads and parses the contents of the file. Does this always synchronously.
+ * Returns the HTML formatted content.
+ *
+ * #### Arguments
+ *
+ * - String path
+ *
+ * #### Returns
+ *
+ * - String html
+ *
+ */
+jsocco.readFile = function (path) {
+  this.parse(
+    fs.readFileSync(path));
+}
+
+/*
+ * isQuoted( Integer position, String text )
+ * -----------------------------------------------------
+ *
+ * Returns whether or not the given position is surrounded by quotes.
+ *
+ * #### Arguments
+ *
+ * - Integer position
+ * - String text
+ *
+ * #### Returns
+ *
+ * - Boolean isQuoted
+ *
+ */
+jsocco.isQuoted = function (position, text) {
+  var firstPart = text.substring(0, position);
+  var lastPart  = text.substring(position);
+  if (firstPart.indexOf('"') != -1 && firstPart.match(/"/g).length % 2 == 1 && lastPart.indexOf('"') != -1)
+    return true;
+  else if (firstPart.indexOf("'") != -1 && firstPart.match(/'/g).length % 2 == 1 && lastPart.indexOf("'") != -1)
+    return true;
+  else 
+    return false;
+}
+
+module.exports = jsocco;

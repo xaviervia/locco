@@ -1,0 +1,17 @@
+{
+  "name": "jsocco",
+  "description": "Partial Docco port with no Pygmentize dependencies",
+  "version": "0.0.1",
+  "dependencies": {
+    "highlight.js": "latest",
+    "marked": "~0.3.1",
+    "glob": "~3.2.8",
+    "mkpath": "~0.1.0",
+    "mustache": "~0.8.1"
+  },
+  "devDependencies": {
+    "vows": "~0.7.0",
+    "grunt": "~0.4.2",
+    "grunt-vows": "~0.4.0"
+  }
+}
