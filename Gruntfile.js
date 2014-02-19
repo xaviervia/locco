@@ -1,12 +1,12 @@
+var fs = require("fs"),
+    rm = require("rimraf");
+
 module.exports = function(grunt) {
 
   grunt.loadNpmTasks("grunt-vows");
 
   grunt.initConfig({
     vows: {
-      all: {
-        src: ["spec/jsocco.js", "spec/jsocco/*.js"]
-      },
       parse: {
         src: ["spec/jsocco/parse.js"]
       },
@@ -21,5 +21,12 @@ module.exports = function(grunt) {
         src: ["spec/jsocco.js"]
       }
     }
+  });
+
+  grunt.registerTask("clean", "Clean after yourself", function () {
+    ['tmp', 'doc', 'docs'].forEach(function (dir) {
+      grunt.log.writeln("Removing dir `" + dir + "`");
+      rm.sync(dir);      
+    });
   });
 };

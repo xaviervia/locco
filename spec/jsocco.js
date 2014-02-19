@@ -3,7 +3,9 @@ var vows      = require("vows"),
     jsocco    = require("../jsocco"),
     highlight = require("highlight.js"),
     marked    = require("marked"),
-    fs        = require("fs");
+    fs        = require("fs"),
+    mustache  = require("mustache"),
+    rm        = require("rimraf");
 
 vows.describe("jsocco(pattern [, options])").addBatch({
   'tmp/*.js | tmp/1.js > var i;': {
@@ -18,7 +20,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
         fs.readFileSync("template/jsocco.html").toString(),
         {
           fileName: "1.js",
-          path: "",
+          path: "tmp",
           content: jsocco.parse("var i;")
         });
       
@@ -26,7 +28,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
         independentResult,
         result);
 
-      fs.rmdirSync("tmp");
+      rm.sync("tmp");
     }
   },
 /*
@@ -51,5 +53,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
   'change template html'
 
   'add files to generation'
+
+  'extra data to the templates'
 */
 }).export(module);

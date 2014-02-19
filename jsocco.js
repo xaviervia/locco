@@ -2,14 +2,19 @@ var highlight = require("highlight.js"),
     marked    = require("marked"),
     fs        = require("fs"),
     glob      = require("glob"),
-    mkpath    = require("mkpath");
+    mkpath    = require("mkpath"),
+    mustache  = require("mustache");
 
 //
 // jsocco
 // ======
 //
 // [Docco](//github.com/jashkenas/docco) port that doesn't depend on 
-// [Pygments](http://pygments.org/).
+// [Pygments](//pygments.org/). Uses 
+// [Github Flavored Markdown](//github.github.com/github-flavored-markdown/) 
+// for Markdown processing and [Highlight.js](//highlightjs.org) for syntax highlight.
+//
+// Supports template customization using [Mustache](//mustache.github.com).
 //
 // ### Installation
 //
@@ -25,7 +30,7 @@ var highlight = require("highlight.js"),
 //
 // ### jsocco( String pattern [, Object options ] )
 //
-// To parse a series of JavaScript files using a [`minimatch`](https://github.com/isaacs/minimatch) 
+// To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch) 
 // pattern from the folders within the `js` directory. The resulting HTML files will be output in
 // the default `doc` directory.
 //
@@ -84,30 +89,56 @@ var highlight = require("highlight.js"),
 // - Array parsedFiles
 //
 jsocco = function (pattern, options) {
+
+  // Load some required default options
   options       = options || jsocco.defaults;
   options.path  = options.path || jsocco.defaults.path;
 
+  // Get the file list by using sync
   var fileList = glob.sync(pattern);
   fileList.forEach(function (file) {
     var destinationFileName;
 
-    if (options.base && 
-      options.base.length > 0 && 
-      file.indexOf(options.base) == 0) 
-      destinationFileName = options.path + "/" + file.substring(options.base.length - 1) + ".html";
-    else
-      destinationFileName = options.path + "/" + file + ".html";
+    // If there is a "base path" filter on, 
+    // it should filter the base path in the destination file name
+    if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0) 
+      destinationFileName = options.path + "/" + 
+        file.substring(options.base.length - 1) + ".html";
 
+    // If there is no "base path" filter, use the full path
+    else destinationFileName = options.path + "/" + file + ".html";
+
+    // Get the current file content
     var content = fs.readFileSync(file).toString();
-    var html = jsocco.parse(content);
-    console.log(html);
 
-    console.log(__dirname);
+    // Parse it with jsocco into HTML
+    var content = jsocco.parse(content);
+
+    // Get the folder path for the destination file
     var folderPath = destinationFileName.split("/")
       .slice(0, destinationFileName.split("/").length - 1)
       .join("/");
 
+    // Prepare the data object for Mustache
+    var data = {
+      content: content,
+      path: folderPath.substring(options.path.length + 1),
+      fileName: destinationFileName
+        .substring(
+          folderPath.length + 1, 
+          destinationFileName.length - 5)
+    }
+
+    // Get the Mustache template from the package's dir
+    var template = fs.readFileSync(__dirname + "/template/jsocco.html").toString();
+
+    // Get the final HTML
+    var html = mustache.render(template, data);
+
+    // Make sure the folder is built
     mkpath.sync(folderPath);
+
+    // Write the file
     fs.writeFileSync(
       destinationFileName,
       html);
@@ -117,7 +148,7 @@ jsocco = function (pattern, options) {
 }
 
 jsocco.defaults = {
-  path: "doc"
+  path: "doc",
 }
 
 
@@ -172,7 +203,7 @@ jsocco.parse = function (text, language) {
           stack.push(priorCode);
         
       }
-      
+
       current.mode = "markdown";
       current.text = line.substring(line.indexOf("//") + 3);
     }    

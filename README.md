@@ -1,4 +1,6 @@
 jsocco
 ======
 
-Partial Docco port with no Pygmentize dependencies
+Partial Docco port with no Pygmentize dependencies.
+
+
