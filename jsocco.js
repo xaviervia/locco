@@ -140,6 +140,11 @@ jsocco = function (pattern, options) {
     // Get the final HTML
     var html = mustache.render(template, data);
 
+    // Copy the CSS into the final folder
+    fs.writeFileSync( 
+      options.path + "/jsocco.css", 
+      fs.readFileSync(__dirname + "/template/jsocco.css") );
+
     // Make sure the folder is built
     mkpath.sync(folderPath);
 

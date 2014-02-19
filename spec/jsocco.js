@@ -31,6 +31,21 @@ vows.describe("jsocco(pattern [, options])").addBatch({
         result);
 
       rm.sync("tmp");
+    },
+
+    'should copy the .css': function () {
+      mkpath.sync("tmp");
+      fs.writeFileSync("tmp/1.js", "var i;");
+      var files  = jsocco( "tmp/*.js" );
+      
+      var css = {
+        source: fs.readFileSync("template/jsocco.css").toString(),
+        destination: fs.readFileSync("doc/jsocco.css").toString()
+      }      
+
+      assert.equal(css.destination, css.source);
+
+      rm.sync("tmp");
     }
   },
 
