@@ -21,7 +21,8 @@ vows.describe("jsocco(pattern [, options])").addBatch({
         {
           fileName: "1.js",
           path: "tmp",
-          content: jsocco.parse("var i;")
+          content: jsocco.parse("var i;"),
+          breadcrumbs: ".."
         });
       
       assert.equal(
@@ -31,21 +32,33 @@ vows.describe("jsocco(pattern [, options])").addBatch({
       rm.sync("tmp");
     }
   },
-/*
+
   'different destination folder': {
     'should do the same but for the other folder': function () {
       fs.mkdirSync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
-      var files = jsocco( "tmp/*.js", "docs" );
-      var result = fs.readFileSync("docs/1.html");
+      var files  = jsocco( "tmp/*.js", {path: "docs"} );
+      var result = fs.readFileSync("docs/tmp/1.js.html").toString();
       assert.include(files, "tmp/1.js");
+
+      var independentResult = mustache.render(
+        fs.readFileSync("template/jsocco.html").toString(),
+        {
+          fileName: "1.js",
+          path: "tmp",
+          content: jsocco.parse("var i;"),
+          breadcrumbs: ".."
+        });
+      
       assert.equal(
-        highlight.highlight("js", "var i;").value,
+        independentResult,
         result);
-      fs.rmdirSync("tmp");
+
+      rm.sync("tmp");
     }
   },
 
+/*
   'base folder name exclusion'
 
   'extension exclusion'
