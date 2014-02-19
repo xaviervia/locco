@@ -101,18 +101,21 @@ vows.describe("jsocco").addBatch({
           content);
       }
     },
-/*
-    '// ```js\nvar i;\n```': {
+
+    '// ```js\n// var i;\n// ```': {
       topic: function () {
-        return jsocco.parse("// ```js\nvar i;\n```");
+        return jsocco.parse("// ```js\n// var i;\n// ```");
       },
 
       'should parse the markdown multiline just fine, and with Github Flavored Markdown': function (content) {
+        if (content instanceof Error) 
+          throw content;
+
         assert.equal(
           marked("```js\nvar i;\n```", { gfm: true }),
 
           content);
       }
-    }*/
+    }
   }
 }).export(module);
