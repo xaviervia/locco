@@ -29,4 +29,9 @@ module.exports = function(grunt) {
       rm.sync(dir);      
     });
   });
+
+  grunt.registerTask("doc", "Generate documentation using itself", function () {
+    grunt.log.writeln("Generating documentation for `jsocco.js`");
+    require("./jsocco")("jsocco.js");
+  });
 };

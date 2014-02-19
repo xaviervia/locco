@@ -116,6 +116,21 @@ vows.describe("jsocco").addBatch({
 
           content);
       }
+    },
+
+    '//! comment': {
+      topic: function () {
+        return jsocco.parse("//! comment");
+      },
+
+      'should highlight as comment': function (content) {
+        if (content instanceof Error)
+          throw content;
+
+        assert.equal(
+          "<pre><code>" + highlight.highlight("js", "//! comment").value + "</code></pre>",
+          content);
+      }
     }
   }
 }).export(module);

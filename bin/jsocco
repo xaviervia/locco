@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+console.log("Generating docs for files matching the " + process.argv[2] + " pattern.");
+var files = require(__dirname + "/../jsocco")(process.argv[2]);
+console.log("Generated docs for:");
+files.forEach(function (file) {
+  console.log("  " + file);
+});

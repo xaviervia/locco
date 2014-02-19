@@ -10,7 +10,7 @@ var highlight = require("highlight.js"),
 // ======
 //
 // [Docco](//github.com/jashkenas/docco) port that doesn't depend on 
-// [Pygments](//pygments.org/). Uses 
+// [Pygments](//pygments.org/). It uses 
 // [Github Flavored Markdown](//github.github.com/github-flavored-markdown/) 
 // for Markdown processing and [Highlight.js](//highlightjs.org) for syntax highlight.
 //
@@ -90,36 +90,36 @@ var highlight = require("highlight.js"),
 //
 jsocco = function (pattern, options) {
 
-  // Load some required default options
+  //! Load some required default options
   options       = options || jsocco.defaults;
   options.path  = options.path || jsocco.defaults.path;
 
-  // Get the file list by using sync
+  //! Get the file list by using sync
   var fileList = glob.sync(pattern);
   fileList.forEach(function (file) {
     var destinationFileName;
 
-    // If there is a "base path" filter on, 
-    // it should filter the base path in the destination file name
+    //! If there is a "base path" filter on, 
+    //! it should filter the base path in the destination file name
     if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0) 
       destinationFileName = options.path + "/" + 
         file.substring(options.base.length - 1) + ".html";
 
-    // If there is no "base path" filter, use the full path
+    //! If there is no "base path" filter, use the full path
     else destinationFileName = options.path + "/" + file + ".html";
 
-    // Get the current file content
+    //! Get the current file content
     var content = fs.readFileSync(file).toString();
 
-    // Parse it with jsocco into HTML
+    //! Parse it with jsocco into HTML
     var content = jsocco.parse(content);
 
-    // Get the folder path for the destination file
+    //! Get the folder path for the destination file
     var folderPath = destinationFileName.split("/")
       .slice(0, destinationFileName.split("/").length - 1)
       .join("/");
 
-    // Prepare the data object for Mustache
+    //! Prepare the data object for Mustache
     var data = {
       content: content,
       path: folderPath.substring(options.path.length + 1),
@@ -127,28 +127,30 @@ jsocco = function (pattern, options) {
         .substring(
           folderPath.length + 1, 
           destinationFileName.length - 5),
-      breadcrumbs: folderPath
-        .substring(options.path.length + 1)
+      breadcrumbs: file
         .split("/")
+        .slice(0, file
+          .substring(options.path.length + 1)
+          .split("/") - 1)
         .map(function (token) { return ".." })
         .join("/")
     }
 
-    // Get the Mustache template from the package's dir
+    //! Get the Mustache template from the package's dir
     var template = fs.readFileSync(__dirname + "/template/jsocco.html").toString();
 
-    // Get the final HTML
+    //! Get the final HTML
     var html = mustache.render(template, data);
 
-    // Copy the CSS into the final folder
+    //! Make sure the folder is built
+    mkpath.sync(folderPath);
+
+    //! Copy the CSS into the final folder
     fs.writeFileSync( 
       options.path + "/jsocco.css", 
       fs.readFileSync(__dirname + "/template/jsocco.css") );
 
-    // Make sure the folder is built
-    mkpath.sync(folderPath);
-
-    // Write the file
+    //! Write the file
     fs.writeFileSync(
       destinationFileName,
       html);
@@ -162,26 +164,26 @@ jsocco.defaults = {
 }
 
 
-/*
- * Methods
- * -------
- *
- * ### parse( String text [, String language] )
- *
- * Returns HTML code from the `text`, parsed with `marked` inside the comments and
- * with `highlight.js` for the rest of the code. If no language identifier is passed,
- * `js` is assumed.
- *
- * #### Arguments
- *
- * - String text
- * - _optional_ String language
- *
- * #### Returns
- *
- * - String html
- *
- */
+//
+// Methods
+// -------
+//
+// ### parse( String text [, String language] )
+//
+// Returns HTML code from the `text`, parsed with `marked` inside the comments and
+// with `highlight.js` for the rest of the code. If no language identifier is passed,
+// `js` is assumed.
+//
+// #### Arguments
+//
+// - String text
+// - _optional_ String language
+//
+// #### Returns
+//
+// - String html
+//
+//
 jsocco.parse = function (text, language) {
   var result  = "";
   var stack   = [];
@@ -190,25 +192,26 @@ jsocco.parse = function (text, language) {
 
     var current = {};
     
-    // There is a comment in here?
-    if (line.indexOf("//") != -1 && !jsocco.isQuoted(line.indexOf("//"), line)) {
+    //! There is a comment in here?
+    if (line.indexOf("//") != -1 && !jsocco.isQuoted(line.indexOf("//"), line) &&
+      line.substring(line.indexOf("//") + 2, line.indexOf("//") + 3) != "!") {
 
-      // There is code prior to the markdown?
+      //! There is code prior to the markdown?
       if (line.substring(0, line.indexOf("//")).trim().length > 0) {
         var priorCode = {
           mode: "code",
           text: line.substring(0, line.indexOf("//"))
         }
 
-        // If there was something before and wasnt code, resolve and clean and 
-        // stack and resolve and clean
+        //! If there was something before and wasnt code, resolve and clean and 
+        //! stack and resolve and clean
         if (stack.length > 0 && stack[stack.length - 1].mode != "code") {
           result += jsocco._resolve(stack, language);
           result += jsocco._resolve([priorCode], language);
           stack   = [];
         }
 
-        // If there was something before and was code, push
+        //! If there was something before and was code, push
         else if (stack.length > 0 && stack[stack.length - 1].mode == "code") 
           stack.push(priorCode);
         
@@ -218,22 +221,22 @@ jsocco.parse = function (text, language) {
       current.text = line.substring(line.indexOf("//") + 3);
     }    
 
-    // There is no comment, just javascript
+    //! There is no comment, just javascript
     else {
       current.mode = "code";
       current.text = line;
     }
 
-    // There is a previous item and is of different mode
+    //! There is a previous item and is of different mode
     if (index > 0 && stack[stack.length - 1].mode != current.mode) {
       result += jsocco._resolve(stack, language);
       stack = [];
     }
 
-    // Add to the stack
+    //! Add to the stack
     stack.push(current);
 
-    // Was it the last?
+    //! Was it the last?
     if (index == lines.length - 1)
       result += jsocco._resolve(stack, language);
 
@@ -244,7 +247,7 @@ jsocco.parse = function (text, language) {
 
 jsocco._resolve = function (stack, language) {
 
-  // Resolve joining with "\n";
+  //! Resolve joining with "\n";
   switch(stack[stack.length - 1].mode) {
     case "markdown":
       return "\n" + 
@@ -272,43 +275,43 @@ jsocco._resolve = function (stack, language) {
   }
 }
 
-/* 
- * readFile( String path )
- * -----------------------
- *
- * Reads and parses the contents of the file. Does this always synchronously.
- * Returns the HTML formatted content.
- *
- * #### Arguments
- *
- * - String path
- *
- * #### Returns
- *
- * - String html
- *
- */
+// 
+// readFile( String path )
+// -----------------------
+//
+// Reads and parses the contents of the file. Does this always synchronously.
+// Returns the HTML formatted content.
+//
+// #### Arguments
+//
+// - String path
+//
+// #### Returns
+//
+// - String html
+//
+//
 jsocco.readFile = function (path) {
   this.parse(
     fs.readFileSync(path));
 }
 
-/*
- * isQuoted( Integer position, String text )
- * -----------------------------------------------------
- *
- * Returns whether or not the given position is surrounded by quotes.
- *
- * #### Arguments
- *
- * - Integer position
- * - String text
- *
- * #### Returns
- *
- * - Boolean isQuoted
- *
- */
+//
+// isQuoted( Integer position, String text )
+// -----------------------------------------------------
+//
+// Returns whether or not the given position is surrounded by quotes.
+//
+// #### Arguments
+//
+// - Integer position
+// - String text
+//
+// #### Returns
+//
+// - Boolean isQuoted
+//
+//
 jsocco.isQuoted = function (position, text) {
   var firstPart = text.substring(0, position);
   var lastPart  = text.substring(position);
