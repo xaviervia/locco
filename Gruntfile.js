@@ -8,17 +8,17 @@ module.exports = function(grunt) {
   grunt.initConfig({
     vows: {
       parse: {
-        src: ["spec/jsocco/parse.js"]
+        src: ["spec/locco/parse.js"]
       },
       'is-quoted': {
-        src: ["spec/jsocco/is-quoted.js"]
+        src: ["spec/locco/is-quoted.js"]
       },
       'read-file': {
-        src: ["spec/jsocco/read-file.js"]
+        src: ["spec/locco/read-file.js"]
       },
 
       main: {
-        src: ["spec/jsocco.js"]
+        src: ["spec/locco.js"]
       }
     }
   });
@@ -31,7 +31,7 @@ module.exports = function(grunt) {
   });
 
   grunt.registerTask("doc", "Generate documentation using itself", function () {
-    grunt.log.writeln("Generating documentation for `jsocco.js`");
-    require("./jsocco")("jsocco.js");
+    grunt.log.writeln("Generating documentation for `locco.js`");
+    require("./locco")("locco.js");
   });
 };

@@ -6,7 +6,7 @@ var highlight = require("highlight.js"),
     mustache  = require("mustache");
 
 //
-// jsocco
+// locco
 // ======
 //
 // [Docco](//github.com/jashkenas/docco) port that doesn't depend on 
@@ -18,7 +18,7 @@ var highlight = require("highlight.js"),
 //
 // ### Installation
 //
-// `npm install git://github.com/xaviervia/jsocco.git --save`
+// `npm install git://github.com/xaviervia/locco.git --save`
 //
 // Test
 // ----
@@ -28,21 +28,21 @@ var highlight = require("highlight.js"),
 // Usage
 // -----
 //
-// ### jsocco( String pattern [, Object options ] )
+// ### locco( String pattern [, Object options ] )
 //
 // To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch) 
 // pattern from the folders within the `js` directory. The resulting HTML files will be output in
 // the default `doc` directory.
 //
 // ```js
-// var jsocco = require("jsocco");
+// var locco = require("locco");
 //
-// var listOfFiles = jsocco("js/**/*.js");
+// var listOfFiles = locco("js/**/*.js");
 // ```
 //
 // The `listOfFiles` variable will be an array containing the parsed files.
 //
-// > Jsocco is an entirely synchronous tool.
+// > `locco` is an entirely synchronous tool.
 //
 // ### Options
 //
@@ -54,9 +54,9 @@ var highlight = require("highlight.js"),
 // Sets the path of the output folder.
 //
 // ```js
-// var jsocco = require("jsocco");
+// var locco = require("locco");
 //
-// var listOfFiles = jsocco("js/**/*.js", {path: "documentation"});
+// var listOfFiles = locco("js/**/*.js", {path: "documentation"});
 // ```
 //
 // #### `base`
@@ -72,9 +72,9 @@ var highlight = require("highlight.js"),
 // will be ignored.
 //
 // ```js
-// var jsocco = require("jsocco");
+// var locco = require("locco");
 //
-// var listOfFiles = jsocco("src/**/*.js", {base: "src"});
+// var listOfFiles = locco("src/**/*.js", {base: "src"});
 // ```
 //
 // #### Arguments
@@ -88,11 +88,11 @@ var highlight = require("highlight.js"),
 //
 // - Array parsedFiles
 //
-jsocco = function (pattern, options) {
+locco = function (pattern, options) {
 
   //! Load some required default options
-  options       = options || jsocco.defaults;
-  options.path  = options.path || jsocco.defaults.path;
+  options       = options || locco.defaults;
+  options.path  = options.path || locco.defaults.path;
 
   //! Get the file list by using sync
   var fileList = glob.sync(pattern);
@@ -111,8 +111,8 @@ jsocco = function (pattern, options) {
     //! Get the current file content
     var content = fs.readFileSync(file).toString();
 
-    //! Parse it with jsocco into HTML
-    var content = jsocco.parse(content);
+    //! Parse it with locco into HTML
+    var content = locco.parse(content);
 
     //! Get the folder path for the destination file
     var folderPath = destinationFileName.split("/")
@@ -142,7 +142,7 @@ jsocco = function (pattern, options) {
     }
 
     //! Get the Mustache template from the package's dir
-    var template = fs.readFileSync(__dirname + "/template/jsocco.html").toString();
+    var template = fs.readFileSync(__dirname + "/template/locco.html").toString();
 
     //! Get the final HTML
     var html = mustache.render(template, data);
@@ -152,8 +152,8 @@ jsocco = function (pattern, options) {
 
     //! Copy the CSS into the final folder
     fs.writeFileSync( 
-      options.path + "/jsocco.css", 
-      fs.readFileSync(__dirname + "/template/jsocco.css") );
+      options.path + "/locco.css", 
+      fs.readFileSync(__dirname + "/template/locco.css") );
 
     //! Write the file
     fs.writeFileSync(
@@ -164,7 +164,7 @@ jsocco = function (pattern, options) {
   return fileList;
 }
 
-jsocco.defaults = {
+locco.defaults = {
   path: "doc",
 }
 
@@ -189,7 +189,7 @@ jsocco.defaults = {
 // - String html
 //
 //
-jsocco.parse = function (text, language) {
+locco.parse = function (text, language) {
   var result  = "";
   var stack   = [];
 
@@ -198,7 +198,7 @@ jsocco.parse = function (text, language) {
     var current = {};
     
     //! There is a comment in here?
-    if (line.indexOf("//") != -1 && !jsocco.isQuoted(line.indexOf("//"), line) &&
+    if (line.indexOf("//") != -1 && !locco.isQuoted(line.indexOf("//"), line) &&
       line.substring(line.indexOf("//") + 2, line.indexOf("//") + 3) != "!") {
 
       //! There is code prior to the markdown?
@@ -211,8 +211,8 @@ jsocco.parse = function (text, language) {
         //! If there was something before and wasnt code, resolve and clean and 
         //! stack and resolve and clean
         if (stack.length > 0 && stack[stack.length - 1].mode != "code") {
-          result += jsocco._resolve(stack, language);
-          result += jsocco._resolve([priorCode], language);
+          result += locco._resolve(stack, language);
+          result += locco._resolve([priorCode], language);
           stack   = [];
         }
 
@@ -234,7 +234,7 @@ jsocco.parse = function (text, language) {
 
     //! There is a previous item and is of different mode
     if (index > 0 && stack[stack.length - 1].mode != current.mode) {
-      result += jsocco._resolve(stack, language);
+      result += locco._resolve(stack, language);
       stack = [];
     }
 
@@ -243,14 +243,14 @@ jsocco.parse = function (text, language) {
 
     //! Was it the last?
     if (index == lines.length - 1)
-      result += jsocco._resolve(stack, language);
+      result += locco._resolve(stack, language);
 
   });
 
   return result.substring(1);
 }
 
-jsocco._resolve = function (stack, language) {
+locco._resolve = function (stack, language) {
 
   //! Resolve joining with "\n";
   switch(stack[stack.length - 1].mode) {
@@ -296,7 +296,7 @@ jsocco._resolve = function (stack, language) {
 // - String html
 //
 //
-jsocco.readFile = function (path) {
+locco.readFile = function (path) {
   this.parse(
     fs.readFileSync(path));
 }
@@ -317,7 +317,7 @@ jsocco.readFile = function (path) {
 // - Boolean isQuoted
 //
 //
-jsocco.isQuoted = function (position, text) {
+locco.isQuoted = function (position, text) {
   var firstPart = text.substring(0, position);
   var lastPart  = text.substring(position);
   if (firstPart.indexOf('"') != -1 && firstPart.match(/"/g).length % 2 == 1 && lastPart.indexOf('"') != -1)
@@ -328,4 +328,4 @@ jsocco.isQuoted = function (position, text) {
     return false;
 }
 
-module.exports = jsocco;
+module.exports = locco;

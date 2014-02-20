@@ -1,6 +1,6 @@
 var vows      = require("vows"),
     assert    = require("assert"),
-    jsocco    = require("../jsocco"),
+    locco    = require("../locco"),
     highlight = require("highlight.js"),
     marked    = require("marked"),
     fs        = require("fs"),
@@ -8,21 +8,21 @@ var vows      = require("vows"),
     rm        = require("rimraf"),
     mkpath    = require("mkpath");
 
-vows.describe("jsocco(pattern [, options])").addBatch({
+vows.describe("locco(pattern [, options])").addBatch({
   'tmp/*.js | tmp/1.js > var i;': {
     'should parse the file contents, create the doc folder, write the output': function () {
       mkpath.sync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
-      var files  = jsocco( "tmp/*.js" );
+      var files  = locco( "tmp/*.js" );
       var result = fs.readFileSync("doc/tmp/1.js.html").toString();
       assert.include(files, "tmp/1.js");
 
       var independentResult = mustache.render(
-        fs.readFileSync("template/jsocco.html").toString(),
+        fs.readFileSync("template/locco.html").toString(),
         {
           fileName: "1.js",
           path: "tmp",
-          content: jsocco.parse("var i;"),
+          content: locco.parse("var i;"),
           breadcrumbs: "../"
         });
       
@@ -36,11 +36,11 @@ vows.describe("jsocco(pattern [, options])").addBatch({
     'should copy the .css': function () {
       mkpath.sync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
-      var files  = jsocco( "tmp/*.js" );
+      var files  = locco( "tmp/*.js" );
       
       var css = {
-        source: fs.readFileSync("template/jsocco.css").toString(),
-        destination: fs.readFileSync("doc/jsocco.css").toString()
+        source: fs.readFileSync("template/locco.css").toString(),
+        destination: fs.readFileSync("doc/locco.css").toString()
       }      
 
       assert.equal(css.destination, css.source);
@@ -53,16 +53,16 @@ vows.describe("jsocco(pattern [, options])").addBatch({
     'should do the same but for the other folder': function () {
       mkpath.sync("tmp");
       fs.writeFileSync("tmp/1.js", "var i;");
-      var files  = jsocco( "tmp/*.js", {path: "docs"} );
+      var files  = locco( "tmp/*.js", {path: "docs"} );
       var result = fs.readFileSync("docs/tmp/1.js.html").toString();
       assert.include(files, "tmp/1.js");
 
       var independentResult = mustache.render(
-        fs.readFileSync("template/jsocco.html").toString(),
+        fs.readFileSync("template/locco.html").toString(),
         {
           fileName: "1.js",
           path: "tmp",
-          content: jsocco.parse("var i;"),
+          content: locco.parse("var i;"),
           breadcrumbs: "../"
         });
       

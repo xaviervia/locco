@@ -1,15 +1,15 @@
 var vows      = require("vows"),
     assert    = require("assert"),
-    jsocco    = require("../../jsocco"),
+    locco    = require("../../locco"),
     highlight = require("highlight.js"),
     marked    = require("marked");
 
-vows.describe("jsocco").addBatch({
+vows.describe("locco").addBatch({
   '.parse(text [, language])': {
 
     'var code;': {
       topic: function () {
-        return jsocco.parse("var code;");
+        return locco.parse("var code;");
       },
 
       'is the result from highlight': function (content) {
@@ -25,7 +25,7 @@ vows.describe("jsocco").addBatch({
 
     '// *something*': {
       topic: function () {
-        return jsocco.parse("// *something*");
+        return locco.parse("// *something*");
       },
 
       'should be marked': function (content) {
@@ -38,7 +38,7 @@ vows.describe("jsocco").addBatch({
 
     '   // *something*': {
       topic: function () {
-        return jsocco.parse("   // *something*");
+        return locco.parse("   // *something*");
       },
 
       'is the result from marked without the comment symbol': function (content) {
@@ -54,7 +54,7 @@ vows.describe("jsocco").addBatch({
 
     '"   // *something*"': {
       topic: function () {
-        return jsocco.parse('"   // *something*"');
+        return locco.parse('"   // *something*"');
       },
 
       'is the result from highlight since the comment is part of a string': function (content) {
@@ -70,7 +70,7 @@ vows.describe("jsocco").addBatch({
 
     'var e;\n// *this*': {
       topic: function () {
-        return jsocco.parse("var e;\n// *this*");
+        return locco.parse("var e;\n// *this*");
       },
 
       'highlight first line, mark second': function (content) {
@@ -87,7 +87,7 @@ vows.describe("jsocco").addBatch({
 
     'var n;\nn=3;// _je_': {
       topic: function  () {
-        return jsocco.parse("var n;\nn=3;// _je_");
+        return locco.parse("var n;\nn=3;// _je_");
       },
 
       'highlight both lines, end in marked': function (content) {
@@ -104,7 +104,7 @@ vows.describe("jsocco").addBatch({
 
     '// ```js\n// var i;\n// ```': {
       topic: function () {
-        return jsocco.parse("// ```js\n// var i;\n// ```");
+        return locco.parse("// ```js\n// var i;\n// ```");
       },
 
       'should parse the markdown multiline just fine, and with Github Flavored Markdown': function (content) {
@@ -120,7 +120,7 @@ vows.describe("jsocco").addBatch({
 
     '//! comment': {
       topic: function () {
-        return jsocco.parse("//! comment");
+        return locco.parse("//! comment");
       },
 
       'should highlight as comment': function (content) {
