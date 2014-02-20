@@ -34,4 +34,6 @@ module.exports = function(grunt) {
     grunt.log.writeln("Generating documentation for `locco.js`");
     require("./locco")("locco.js");
   });
+
+  grunt.registerTask("default", ["clean", "doc"]);
 };
