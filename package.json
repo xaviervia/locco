@@ -2,6 +2,7 @@
   "name": "jsocco",
   "description": "Partial Docco port with no Pygmentize dependencies",
   "version": "0.0.1",
+  "main": "jsocco.js",
   "dependencies": {
     "highlight.js": "latest",
     "marked": "~0.3.1",
