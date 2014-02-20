@@ -23,7 +23,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
           fileName: "1.js",
           path: "tmp",
           content: jsocco.parse("var i;"),
-          breadcrumbs: ".."
+          breadcrumbs: "../"
         });
       
       assert.equal(
@@ -63,7 +63,7 @@ vows.describe("jsocco(pattern [, options])").addBatch({
           fileName: "1.js",
           path: "tmp",
           content: jsocco.parse("var i;"),
-          breadcrumbs: ".."
+          breadcrumbs: "../"
         });
       
       assert.equal(

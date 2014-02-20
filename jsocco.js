@@ -119,6 +119,17 @@ jsocco = function (pattern, options) {
       .slice(0, destinationFileName.split("/").length - 1)
       .join("/");
 
+    //! Obtain the breadcrumbs
+    var breadcrumbs = destinationFileName
+      .substring(options.path.length + 1)
+      .split("/")
+      .slice(0, destinationFileName
+        .substring(options.path.length + 1)
+        .split("/")
+        .length - 1)
+      .map(function (token) { return ".."; })
+      .join("/") + "/";
+
     //! Prepare the data object for Mustache
     var data = {
       content: content,
@@ -127,13 +138,7 @@ jsocco = function (pattern, options) {
         .substring(
           folderPath.length + 1, 
           destinationFileName.length - 5),
-      breadcrumbs: file
-        .split("/")
-        .slice(0, file
-          .substring(options.path.length + 1)
-          .split("/") - 1)
-        .map(function (token) { return ".." })
-        .join("/")
+      breadcrumbs: breadcrumbs
     }
 
     //! Get the Mustache template from the package's dir

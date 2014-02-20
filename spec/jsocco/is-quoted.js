@@ -5,6 +5,9 @@ var vows      = require("vows"),
     marked    = require("marked");
 
 vows.describe("jsocco").addBatch({
+
+  // isQuoted
+  // --------
   '.isQuoted(index, text) : ': {
     
     'adfa | 2 | false': function () {
