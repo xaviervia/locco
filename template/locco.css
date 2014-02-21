@@ -5926,3 +5926,7 @@ summary:hover, summary:focus, summary:active {
   cursor: pointer;
   text-decoration: underline;
 }
+
+summary {
+  color: #999;
+}
