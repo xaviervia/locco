@@ -74,6 +74,29 @@ vows.describe("locco(pattern [, options])").addBatch({
     }
   },
 
+  'file from base folder': {
+    'should have nothing in the breadcrumbs': function () {
+      fs.writeFileSync("tmp.js", "8");
+      locco("tmp.js");
+      var result = fs.readFileSync("doc/tmp.js.html").toString();
+
+      var independentResult = mustache.render(
+        fs.readFileSync("template/locco.html").toString(),
+        {
+          fileName: "tmp.js",
+          path: "",
+          content: locco.parse("8"),
+          breadcrumbs: ""
+        });
+
+      assert.equal(
+        independentResult,
+        result);
+
+      fs.unlinkSync("tmp.js");
+    }
+  },
+
   'base folder name exclusion': {
     'should exclude the base folder from the final folder name': "pending"
   },

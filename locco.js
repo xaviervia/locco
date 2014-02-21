@@ -130,6 +130,10 @@ locco = function (pattern, options) {
       .map(function (token) { return ".."; })
       .join("/") + "/";
 
+    //! If the breadcrumbs are just a slash, erase 'em
+    if (breadcrumbs == "/")
+      breadcrumbs = null;
+
     //! Prepare the data object for Mustache
     var data = {
       content: content,
