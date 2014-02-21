@@ -265,16 +265,14 @@ locco._resolve = function (stack, language) {
       break;
 
     case "code": 
-      return "\n<pre><code>" + 
-        highlight.highlight(
-          language ? language : "js",
-          stack.map(function (token) {
-            return token.text;
-          })
-          .join("\n")
-        )
-        .value +
-        "</code></pre>";  
+      return "\n" + mustache.render(
+        fs.readFileSync( __dirname + "/template/code.html").toString(),
+        { content: highlight.highlight(
+            language ? language : "js",
+            stack.map(function (token) {
+              return token.text; })
+            .join("\n"))
+          .value });  
       break;
   
   }

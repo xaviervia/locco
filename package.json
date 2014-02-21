@@ -1,7 +1,7 @@
 {
   "name": "locco",
   "description": "Partial Docco port with no Pygmentize dependencies",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "locco.js",
   "dependencies": {
     "highlight.js": "latest",

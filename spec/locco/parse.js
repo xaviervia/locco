@@ -1,8 +1,10 @@
 var vows      = require("vows"),
     assert    = require("assert"),
-    locco    = require("../../locco"),
+    locco     = require("../../locco"),
     highlight = require("highlight.js"),
-    marked    = require("marked");
+    fs        = require("fs"),
+    marked    = require("marked")
+    mustache  = require("mustache");
 
 vows.describe("locco").addBatch({
   '.parse(text [, language])': {
@@ -17,7 +19,9 @@ vows.describe("locco").addBatch({
           throw content;
 
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", "var code;").value + "</code></pre>",
+          mustache.render(
+            fs.readFileSync("template/code.html").toString(),
+            {content: highlight.highlight("js", "var code;").value}),
 
           content);
       }
@@ -62,7 +66,9 @@ vows.describe("locco").addBatch({
           throw content;
 
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", '"   // *something*"').value + "</code></pre>",
+          mustache.render(
+            fs.readFileSync("template/code.html").toString(),
+            {content: highlight.highlight("js", '"   // *something*"').value}),
 
           content);
       }
@@ -78,7 +84,9 @@ vows.describe("locco").addBatch({
           throw content;
 
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", "var e;").value + "</code></pre>\n" + 
+          mustache.render(
+            fs.readFileSync("template/code.html").toString(),
+            {content: highlight.highlight("js", "var e;").value}) + "\n" +
           marked("*this*"),
 
           content);
@@ -95,7 +103,9 @@ vows.describe("locco").addBatch({
           throw content;
 
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", "var n;\nn=3;").value + "</code></pre>\n" + 
+          mustache.render(
+            fs.readFileSync("template/code.html").toString(),
+            {content: highlight.highlight("js", "var n;\nn=3;").value}) + "\n" +
           marked("_je_"),
 
           content);
@@ -128,7 +138,9 @@ vows.describe("locco").addBatch({
           throw content;
 
         assert.equal(
-          "<pre><code>" + highlight.highlight("js", "//! comment").value + "</code></pre>",
+          mustache.render(
+            fs.readFileSync("template/code.html").toString(),
+            {content: highlight.highlight("js", "//! comment").value}),
           content);
       }
     }
