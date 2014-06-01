@@ -23,7 +23,7 @@ vows.describe("locco", {
   // Pattern: `temp/*.js`
   // File: `temp/test.js`
   // Content: `var i;`
-  // Result: `doc/temp/test.js.html`
+  // Result: `doc/test.js.html`
   '("temp/*.js")': {
 
     // The resulting collection of files should include the
@@ -64,15 +64,15 @@ vows.describe("locco", {
       locco( "temp/*.js" )
 
       //! Get the file content
-      locced = fs.readFileSync("doc/temp/test.js.html").toString()
+      locced = fs.readFileSync("doc/test.js.html").toString()
 
       //! Get the content as is should be, directly from Mustache
       handcrafted = handcraft({
         template:      "template/locco.html",
         fileName:      "test.js",
-        path:          "temp",
+        path:          "",
         content:       locco.parse("var i;"),
-        breadcrumbs:   "../"
+        breadcrumbs:   ""
       })
 
       //! Assert that both are equal
@@ -131,15 +131,15 @@ vows.describe("locco", {
       locco( "temp/*.js", {output: "docs"} )
 
       //! Get the result file from the new dir
-      locced = fs.readFileSync("docs/temp/test.js.html").toString();
+      locced = fs.readFileSync("docs/test.js.html").toString();
 
       //! Handcraft the same file
       handcrafted = handcraft({
         template:    "template/locco.html",
         fileName:    "test.js",
-        path:        "temp",
+        path:        "",
         content:     locco.parse("var i;"),
-        breadcrumbs: "../"
+        breadcrumbs: ""
       })
 
       //! Assert they are the same
@@ -153,7 +153,11 @@ vows.describe("locco", {
     }
   },
 
-  // Pattern: `temp/*.js`
+  'file from deep in the hierarchy': {
+    'should have the path': 'pending'
+  },
+
+  // Pattern: `temp.js`
   // File: `temp.js`
   // Content: `8`
   // Result: `docs/temp.js.html`
@@ -183,13 +187,54 @@ vows.describe("locco", {
         handcrafted,
         locced )
 
-      //! Remove the temp.js file
+      //! Remove the temp.js file and the doc dir
       fs.unlinkSync("temp.js")
+      rm.sync("doc")
     }
   },
 
-  'base folder name exclusion': {
-    'should exclude the base folder from the final folder name': "pending"
+  'file from deep without wildcard': {
+    'the file name should not be erased': 'pending'
+  },
+
+  'base folder name inclusion': {
+
+    // Pattern: `temp/*.js`
+    // File: `temp/test.js`
+    // Content: `8`
+    // Result: `docs/temp/test.js.html`
+    'should include the base folder in the final folder name': function () {
+
+      //! Create the temp folder
+      mkpath.sync("temp")
+
+      //! Create the test.js file
+      fs.writeFileSync("temp/test.js", "8")
+
+      //! Run locco on the file
+      locco("temp/*.js", {includeBase: true})
+
+      //! Get the file from where it was expected
+      locced = fs.readFileSync("doc/temp/test.js.html").toString()
+
+      //! Handcraft the result...
+      handcrafted = handcraft({
+        template:     "template/locco.html",
+        fileName:     "test.js",
+        path:         "temp",
+        content:      locco.parse("8"),
+        breadcrumbs:  "../"
+      })
+
+      //! Showdown!
+      assert.equal(
+        handcrafted,
+        locced )
+
+      //! Remove the directories
+      rm.sync("temp")
+      rm.sync("doc")
+    }
   },
 
   'extension exclusion': "pending",

@@ -6,6 +6,7 @@ var fs        = require("fs")
 var glob      = require("glob")
 var mkpath    = require("mkpath")
 var mustache  = require("mustache")
+var Minimatch = require("minimatch").Minimatch
 
 //
 // locco
@@ -68,29 +69,27 @@ var mustache  = require("mustache")
 // var documentedFiles = locco("js/**/*.js", {output: "documentation"});
 // ```
 //
-// ##### `base`
+// ##### `includeBase`
 //
-// Sets the path to be excluded in the output files names. Default is empty.
+// If `true`, includes the full relative file path in the folder. If
+// `false`, includes the path starting from the `**` or `*` wildcards in
+// the glob pattern, which is more clean.
+//
+// Default is `false`.
 //
 // For example, if your project source files are all contained in a `src`
-// directory, setting the pattern to `src/**/*js` and the `base` to `src`
+// directory, setting the pattern to `src/**/*js`
 // will produce the files to be output directly into the `doc` directory
 // discarding the `src` prefix.
-//
-// A file named `src/data.js` will be parsed into `doc/data.js` instead of the
-// default behavior `doc/src/data.js`.
-//
-// If some file, for some reason, does not match the `base` path, the `base` option
-// will be ignored.
 //
 // ```js
 // var locco = require("locco");
 //
-// var documentedFiles = locco("src/**/*.js", {base: "src"});
+// var documentedFiles = locco("src/**/*.js", {includeBase: false});
 // ```
 var defaults = {
   output: "doc",
-  base: ""
+  includeBase: false
 }
 
 //
@@ -108,81 +107,105 @@ var defaults = {
 var locco = function (pattern, options) {
 
   //! Load some required default options
-  options       = options           || defaults;
-  options.output  = options.output  || defaults.output;
+  options         = options         || defaults
+  options.output  = options.output  || defaults.output
 
-  //! Get the file list by using sync
-  var fileList = glob.sync(pattern);
-  fileList.forEach(function (file) {
-    var destinationFileName;
+  //! Get base path if includeBase is disabled
+  var base = []
+  if (!options.includeBase)
+    base =
 
-    //! If there is a "base path" filter on,
-    //! it should filter the base path in the destination file name
-    if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0)
-      destinationFileName = options.output + "/" +
-        file.substring(options.base.length - 1) + ".html";
+      //! Get the minimatch object for the pattern to extract the path
+      //! to the deepest base directory not represented as a wildcard
+      new Minimatch(pattern)
+        .set[0]
+        .filter(function (item, index, array) {
+          //! Filter out all the elements that are not string
+          //! This is because other elements are wildcards and we are
+          //! interested in the deepest base folder defined without wildcard
+          return typeof item === 'string' &&
 
-    //! If there is no "base path" filter, use the full path
-    else destinationFileName = options.output + "/" + file + ".html";
+            //! And filter out the only element if there is only one
+            //! (in which case it probably is a single file name)
+            array.length > 1
+        })
 
-    //! Get the current file content
-    var content = fs.readFileSync(file).toString();
+
+  //! Get the file list by using sync and iterate
+  return glob
+    .sync(pattern)
+    .map(function (file) {
+
+    //! Declare the variable to hold the destination file name
+    var destinationFilePath
+
+    //! Filter the base from the file, if there is a base
+    var filteredFile = base.length > 0 ?
+      file.substring(base.join("/").length + 1) : file
+
+    //! Get the destination file path
+    destinationFilePath = options.output + "/" + filteredFile + ".html"
+
+    //! Get the current file contents
+    var content = fs.readFileSync(file).toString()
 
     //! Parse it with locco into HTML
-    var content = locco.parse(content);
+    content = locco.parse(content)
 
     //! Get the folder path for the destination file
-    var folderPath = destinationFileName.split("/")
-      .slice(0, destinationFileName.split("/").length - 1)
-      .join("/");
+    var folderPath = destinationFilePath.split("/")
+      .slice(0, destinationFilePath.split("/").length - 1)
+      .join("/")
 
-    //! Obtain the breadcrumbs
-    var breadcrumbs = destinationFileName
+    //! Obtain the breadcrumbs (relative path to base doc folder)
+    var breadcrumbs = destinationFilePath
       .substring(options.output.length + 1)
       .split("/")
-      .slice(0, destinationFileName
+      .slice(0, destinationFilePath
         .substring(options.output.length + 1)
         .split("/")
         .length - 1)
       .map(function (token) { return ".."; })
-      .join("/") + "/";
+      .join("/") + "/"
 
     //! If the breadcrumbs are just a slash, erase 'em
     if (breadcrumbs == "/")
-      breadcrumbs = null;
+      breadcrumbs = null
 
     //! Prepare the data object for Mustache
     var data = {
       content: content,
       path: folderPath.substring(options.output.length + 1),
-      fileName: destinationFileName
+      fileName: destinationFilePath
         .substring(
           folderPath.length + 1,
-          destinationFileName.length - 5),
+          destinationFilePath.length - 5),
       breadcrumbs: breadcrumbs
     }
 
     //! Get the Mustache template from the package's dir
-    var template = fs.readFileSync(__dirname + "/template/locco.html").toString();
+    var template = fs.readFileSync(__dirname +
+      "/template/locco.html").toString()
 
     //! Get the final HTML
-    var html = mustache.render(template, data);
+    var html = mustache.render(template, data)
 
-    //! Make sure the folder is built
-    mkpath.sync(folderPath);
+    //! Make sure the folder exists
+    mkpath.sync(folderPath)
 
     //! Copy the CSS into the final folder
     fs.writeFileSync(
       options.output + "/locco.css",
-      fs.readFileSync(__dirname + "/template/locco.css") );
+      fs.readFileSync(__dirname + "/template/locco.css") )
 
     //! Write the file
     fs.writeFileSync(
-      destinationFileName,
-      html);
-  });
+      destinationFilePath,
+      html)
 
-  return fileList;
+    return file
+  })
+
 }
 
 
@@ -313,7 +336,7 @@ locco._resolve = function (stack, language) {
 //
 locco.readFile = function (path) {
   this.parse(
-    fs.readFileSync(path));
+    fs.readFileSync(path))
 }
 
 //
