@@ -38,7 +38,7 @@ The `documentedFiles` variable will be an array containing the parsed files.
 
 > **locco** does everything synchronously. Why is that?
 > Because locco is useful in contexts where asynchronicity means nothing
-> but troble.
+> but trouble.
 > In **locco**, doc generation for each file is intended to be atomic. Files
 > are usually too many for you to be able to handle callbacks without
 > serious acrobatics, and with no real benefit, why should you?
