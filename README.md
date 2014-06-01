@@ -1,19 +1,16 @@
-
 locco
 ======
 
-![Codeship status](https://www.codeship.io/projects/173f7bd0-ad2d-0131-d326-5a3e053281b1/status)
-
-[Docco](//github.com/jashkenas/docco) port that doesn't depend on 
-[Pygments](//pygments.org/). It uses 
-[Github Flavored Markdown](//github.github.com/github-flavored-markdown/) 
+[Docco](//github.com/jashkenas/docco) port that doesn't depend on
+[Pygments](//pygments.org/). It uses
+[Github Flavored Markdown](//github.github.com/github-flavored-markdown/)
 for Markdown processing and [Highlight.js](//highlightjs.org) for syntax highlight.
 
 Supports template customization using [Mustache](//mustache.github.com).
 
 ### Installation
 
-`npm install git://github.com/xaviervia/locco.git --save`
+    npm install locco --save
 
 Test
 ----
@@ -23,65 +20,73 @@ Test
 Usage
 -----
 
-### locco( String pattern [, Object options ] )
+### locco( pattern, options )
 
-To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch) 
-pattern from the folders within the `js` directory. The resulting HTML files will be output in
+Parses a series of files found using a [`glob`](//github.com/isaacs/minimatch)
+pattern. The resulting HTML files are written in
 the default `doc` directory.
+
+Here goes an example:
 
 ```js
 var locco = require("locco");
 
-var listOfFiles = locco("js/**/*.js");
+var documentedFiles = locco("js/**/*.js");
 ```
 
-The `listOfFiles` variable will be an array containing the parsed files.
+The `documentedFiles` variable will be an array containing the parsed files.
 
-> `locco` is an entirely synchronous tool.
+> **locco** does everything synchronously. Why is that?
+> Because locco is useful in contexts where asynchronicity means nothing
+> but troble.
+> In **locco**, doc generation for each file is intended to be atomic. Files
+> are usually too many for you to be able to handle callbacks without
+> serious acrobatics, and with no real benefit, why should you?
 
-### Options
+#### Options
 
 The second, optional argument allows you to configure both the output folder and
 a base folder to be excluded from the hierarchy in the output files.
 
-#### `path`
+##### `output`
 
-Sets the path of the output folder.
+Sets the path of the output folder. Default: **doc**
 
 ```js
 var locco = require("locco");
 
-var listOfFiles = locco("js/**/*.js", {path: "documentation"});
+var documentedFiles = locco("js/**/*.js", {output: "documentation"});
 ```
 
-#### `base`
+##### `includeBase`
 
-Sets the path to be excluded in the output files names. For example, if
-your project source files are all contained in a `src` directory, setting
-the pattern to `src/**/*js` and the `base` to `src` will produce the files
-to be output directly into the `doc` directory discarding the `src` prefix. 
-A file named `src/data.js` will be parsed into `doc/data.js` instead of the
-default behavior `doc/src/data.js`.
+If `true`, includes the full relative file path in the folder. If
+`false`, includes the path starting from the `**` or `*` wildcards in
+the glob pattern, which is more clean.
 
-If some file, for some reason, does not match the `base` path, the `base` option
-will be ignored.
+Default is `false`.
+
+For example, if your project source files are all contained in a `src`
+directory, setting the pattern to `src/**/*js`
+will produce the files to be output directly into the `doc` directory
+discarding the `src` prefix.
 
 ```js
 var locco = require("locco");
 
-var listOfFiles = locco("src/**/*.js", {base: "src"});
+var documentedFiles = locco("src/**/*.js", {includeBase: false});
 ```
 
 #### Arguments
 
-- String pattern
-- _optional_ Object options
-  - path: String destinationPath
-  - base: String baseDirectoryToExclude
+- `String` pattern
+- _optional_ `Object` options
+  - output: `String`
+  - includeBase: `Boolean`
 
 #### Returns
 
-- Array parsedFiles
+- `Array` parsedFiles
 
 
 Methods

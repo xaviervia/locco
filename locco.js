@@ -97,8 +97,8 @@ var defaults = {
 //
 // - `String` pattern
 // - _optional_ `Object` options
-//   - path: `String` destinationPath
-//   - base: `String` baseDirectoryToExclude
+//   - output: `String`
+//   - includeBase: `Boolean`
 //
 // #### Returns
 //
