@@ -45,8 +45,9 @@ The `documentedFiles` variable will be an array containing the parsed files.
 
 #### Options
 
-The second, optional argument allows you to configure both the output folder and
-a base folder to be excluded from the hierarchy in the output files.
+The second, optional argument allows you to configure both the output folder
+and whether the base folder in the glob pattern will be excluded from
+the hierarchy in the output files.
 
 ##### `output`
 

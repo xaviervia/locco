@@ -56,8 +56,9 @@ var Minimatch = require("minimatch").Minimatch
 //
 // #### Options
 //
-// The second, optional argument allows you to configure both the output folder and
-// a base folder to be excluded from the hierarchy in the output files.
+// The second, optional argument allows you to configure both the output folder
+// and whether the base folder in the glob pattern will be excluded from
+// the hierarchy in the output files.
 //
 // ##### `output`
 //
