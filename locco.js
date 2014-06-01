@@ -12,6 +12,8 @@ var Minimatch = require("minimatch").Minimatch
 // locco
 // ======
 //
+// ![Codeship status](https://www.codeship.io/projects/173f7bd0-ad2d-0131-d326-5a3e053281b1/status)
+//
 // [Docco](//github.com/jashkenas/docco) port that doesn't depend on
 // [Pygments](//pygments.org/). It uses
 // [Github Flavored Markdown](//github.github.com/github-flavored-markdown/)
