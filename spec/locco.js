@@ -42,7 +42,9 @@ vows.describe("locco", {
       files = locco("temp/*.js")
 
       //! Assert that the file is included in the results
-      assert.include(locco("temp/*.js"), "temp/test.js")
+      assert.include(
+        locco("temp/*.js"),
+        "temp/test.js" )
 
       //! Remove the directories
       rm.sync("temp")
@@ -76,7 +78,7 @@ vows.describe("locco", {
       //! Assert that both are equal
       assert.equal(
         handcrafted,
-        locced)
+        locced )
 
       //! Remove the temp directory
       rm.sync("temp")
@@ -89,7 +91,7 @@ vows.describe("locco", {
       //! Create the temp directory
       mkpath.sync("temp")
 
-      //! Write as simple javascript file
+      //! Write a simple javascript file
       fs.writeFileSync("temp/test.js", "var i;")
 
       //! Run locco
@@ -114,52 +116,75 @@ vows.describe("locco", {
   // Pattern: `temp/*.js`
   // File: `temp/test.js`
   // Content: `var i;`
-  // Result: `doc/temp/test.js.html`
+  // Result: `docs/temp/test.js.html`
   'different destination folder': {
+
     'should do the same but for the other folder': function () {
+
+      //! Create the temp directory
       mkpath.sync("temp")
-      fs.writeFileSync("temp/1.js", "var i;");
-      var files  = locco( "temp/*.js", {path: "docs"} );
-      var result = fs.readFileSync("docs/temp/1.js.html").toString();
-      assert.include(files, "temp/1.js");
 
-      var independentResult = mustache.render(
-        fs.readFileSync("template/locco.html").toString(),
-        {
-          fileName: "1.js",
-          path: "temp",
-          content: locco.parse("var i;"),
-          breadcrumbs: "../"
-        });
+      //! Write a simple javascript file
+      fs.writeFileSync("temp/test.js", "var i;")
 
+      //! Run locco with docs as output directory
+      locco( "temp/*.js", {output: "docs"} )
+
+      //! Get the result file from the new dir
+      locced = fs.readFileSync("docs/temp/test.js.html").toString();
+
+      //! Handcraft the same file
+      handcrafted = handcraft({
+        template:    "template/locco.html"),
+        fileName:    "test.js",
+        path:        "temp",
+        content:     locco.parse("var i;"),
+        breadcrumbs: "../"
+      })
+
+      //! Assert they are the same
       assert.equal(
-        independentResult,
-        result);
+        handcrafted,
+        locced )
 
-      rm.sync("temp");
+      //! Remove the directories
+      rm.sync("temp")
+      rm.sync("docs")
     }
   },
 
+  // Pattern: `temp/*.js`
+  // File: `temp.js`
+  // Content: `8`
+  // Result: `docs/temp.js.html`
   'file from base folder': {
     'should have nothing in the breadcrumbs': function () {
-      fs.writeFileSync("temp.js", "8");
-      locco("temp.js");
-      var result = fs.readFileSync("doc/temp.js.html").toString();
 
-      var independentResult = mustache.render(
-        fs.readFileSync("template/locco.html").toString(),
-        {
-          fileName: "temp.js",
-          path: "",
-          content: locco.parse("8"),
-          breadcrumbs: ""
-        });
+      //! Create the temp.js file
+      fs.writeFileSync("temp.js", "8")
 
+      //! Run locco for the temp.js file
+      locco("temp.js")
+
+      //! Get the locced file
+      locced = fs.readFileSync("doc/temp.js.html").toString()
+
+      //! Handcraft the same result
+      handcrafted = handcraft(
+        template:    "template/locco.html",
+        fileName:    "temp.js",
+        path:        "",
+        content:     locco.parse("8"),
+        breadcrumbs: ""
+      })
+
+      //! Compare both results
       assert.equal(
-        independentResult,
-        result);
+        handcrafted,
+        locced )
 
-      fs.unlinkSync("temp.js");
+      //! Remove the temp.js file
+      fs.unlinkSync("temp.js")
     }
   },
 
