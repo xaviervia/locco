@@ -1,7 +1,7 @@
 {
   "name": "locco",
   "description": "Partial Docco port with no Pygmentize dependencies",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "main": "locco.js",
   "dependencies": {
     "highlight.js": "latest",
@@ -14,7 +14,8 @@
     "vows": "~0.7.0",
     "grunt": "~0.4.2",
     "grunt-vows": "~0.4.0",
-    "rimraf": "~2.2.6"
+    "rimraf": "~2.2.6",
+    "minimatch": "~0.3.0"
   },
   "bin": {
     "locco": "bin/locco"
