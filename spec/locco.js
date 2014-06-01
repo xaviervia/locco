@@ -135,7 +135,7 @@ vows.describe("locco", {
 
       //! Handcraft the same file
       handcrafted = handcraft({
-        template:    "template/locco.html"),
+        template:    "template/locco.html",
         fileName:    "test.js",
         path:        "temp",
         content:     locco.parse("var i;"),
@@ -170,7 +170,7 @@ vows.describe("locco", {
       locced = fs.readFileSync("doc/temp.js.html").toString()
 
       //! Handcraft the same result
-      handcrafted = handcraft(
+      handcrafted = handcraft({
         template:    "template/locco.html",
         fileName:    "temp.js",
         path:        "",
