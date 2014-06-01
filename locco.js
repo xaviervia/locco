@@ -9,9 +9,9 @@ var highlight = require("highlight.js"),
 // locco
 // ======
 //
-// [Docco](//github.com/jashkenas/docco) port that doesn't depend on 
-// [Pygments](//pygments.org/). It uses 
-// [Github Flavored Markdown](//github.github.com/github-flavored-markdown/) 
+// [Docco](//github.com/jashkenas/docco) port that doesn't depend on
+// [Pygments](//pygments.org/). It uses
+// [Github Flavored Markdown](//github.github.com/github-flavored-markdown/)
 // for Markdown processing and [Highlight.js](//highlightjs.org) for syntax highlight.
 //
 // Supports template customization using [Mustache](//mustache.github.com).
@@ -30,7 +30,7 @@ var highlight = require("highlight.js"),
 //
 // ### locco( String pattern [, Object options ] )
 //
-// To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch) 
+// To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch)
 // pattern from the folders within the `js` directory. The resulting HTML files will be output in
 // the default `doc` directory.
 //
@@ -64,7 +64,7 @@ var highlight = require("highlight.js"),
 // Sets the path to be excluded in the output files names. For example, if
 // your project source files are all contained in a `src` directory, setting
 // the pattern to `src/**/*js` and the `base` to `src` will produce the files
-// to be output directly into the `doc` directory discarding the `src` prefix. 
+// to be output directly into the `doc` directory discarding the `src` prefix.
 // A file named `src/data.js` will be parsed into `doc/data.js` instead of the
 // default behavior `doc/src/data.js`.
 //
@@ -99,10 +99,10 @@ locco = function (pattern, options) {
   fileList.forEach(function (file) {
     var destinationFileName;
 
-    //! If there is a "base path" filter on, 
+    //! If there is a "base path" filter on,
     //! it should filter the base path in the destination file name
-    if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0) 
-      destinationFileName = options.path + "/" + 
+    if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0)
+      destinationFileName = options.path + "/" +
         file.substring(options.base.length - 1) + ".html";
 
     //! If there is no "base path" filter, use the full path
@@ -140,7 +140,7 @@ locco = function (pattern, options) {
       path: folderPath.substring(options.path.length + 1),
       fileName: destinationFileName
         .substring(
-          folderPath.length + 1, 
+          folderPath.length + 1,
           destinationFileName.length - 5),
       breadcrumbs: breadcrumbs
     }
@@ -155,8 +155,8 @@ locco = function (pattern, options) {
     mkpath.sync(folderPath);
 
     //! Copy the CSS into the final folder
-    fs.writeFileSync( 
-      options.path + "/locco.css", 
+    fs.writeFileSync(
+      options.path + "/locco.css",
       fs.readFileSync(__dirname + "/template/locco.css") );
 
     //! Write the file
@@ -200,7 +200,7 @@ locco.parse = function (text, language) {
   text.split("\n").forEach(function (line, index, lines) {
 
     var current = {};
-    
+
     //! There is a comment in here?
     if (line.indexOf("//") != -1 && !locco.isQuoted(line.indexOf("//"), line) &&
       line.substring(line.indexOf("//") + 2, line.indexOf("//") + 3) != "!") {
@@ -212,7 +212,7 @@ locco.parse = function (text, language) {
           text: line.substring(0, line.indexOf("//"))
         }
 
-        //! If there was something before and wasnt code, resolve and clean and 
+        //! If there was something before and wasnt code, resolve and clean and
         //! stack and resolve and clean
         if (stack.length > 0 && stack[stack.length - 1].mode != "code") {
           result += locco._resolve(stack, language);
@@ -221,14 +221,14 @@ locco.parse = function (text, language) {
         }
 
         //! If there was something before and was code, push
-        else if (stack.length > 0 && stack[stack.length - 1].mode == "code") 
+        else if (stack.length > 0 && stack[stack.length - 1].mode == "code")
           stack.push(priorCode);
-        
+
       }
 
       current.mode = "markdown";
       current.text = line.substring(line.indexOf("//") + 3);
-    }    
+    }
 
     //! There is no comment, just javascript
     else {
@@ -259,16 +259,16 @@ locco._resolve = function (stack, language) {
   //! Resolve joining with "\n";
   switch(stack[stack.length - 1].mode) {
     case "markdown":
-      return "\n" + 
+      return "\n" +
         marked(
-          stack.map(function (token) { 
-            return token.text; 
+          stack.map(function (token) {
+            return token.text;
           })
           .join("\n"));
-  
+
       break;
 
-    case "code": 
+    case "code":
       return "\n" + mustache.render(
         fs.readFileSync( __dirname + "/template/code.html").toString(),
         { content: highlight.highlight(
@@ -276,13 +276,13 @@ locco._resolve = function (stack, language) {
             stack.map(function (token) {
               return token.text; })
             .join("\n"))
-          .value });  
+          .value });
       break;
-  
+
   }
 }
 
-// 
+//
 // readFile( String path )
 // -----------------------
 //
@@ -307,7 +307,8 @@ locco.readFile = function (path) {
 // isQuoted( Integer position, String text )
 // -----------------------------------------------------
 //
-// Returns whether or not the given position is surrounded by quotes.
+// Returns whether or not the character at the given position is surrounded
+// by quotes.
 //
 // #### Arguments
 //
@@ -320,14 +321,39 @@ locco.readFile = function (path) {
 //
 //
 locco.isQuoted = function (position, text) {
-  var firstPart = text.substring(0, position);
-  var lastPart  = text.substring(position);
-  if (firstPart.indexOf('"') != -1 && firstPart.match(/"/g).length % 2 == 1 && lastPart.indexOf('"') != -1)
-    return true;
-  else if (firstPart.indexOf("'") != -1 && firstPart.match(/'/g).length % 2 == 1 && lastPart.indexOf("'") != -1)
-    return true;
-  else 
-    return false;
+
+  //! Double quotes!
+  if (
+
+    //! Is there at least one double quote before this character?
+    text.substring(0, position).indexOf('"') != -1 &&
+
+    //! Are there an odd amount of double quotes before this character?
+    text.substring(0, position).match(/"/g).length % 2 == 1 &&
+
+    //! Is there at least one double quote after this character?
+    text.substring(position).indexOf('"') != -1)
+
+      //! Then it is quoted!
+      return true
+
+  //! Single quotes!
+  if (
+
+    //! Is there at least one single quote before this character?
+    text.substring(0, position).indexOf("'") != -1 &&
+
+    //! Are there an odd amount of single quotes before this character?
+    text.substring(0, position).match(/'/g).length % 2 == 1 &&
+
+    //! Is there at least one single quote after this character?
+    text.substring(position).indexOf("'") != -1)
+
+      //! Then it is quoted!
+      return true
+
+  //! Otherwise it is not quoted
+  return false
 }
 
-module.exports = locco;
+module.exports = locco
