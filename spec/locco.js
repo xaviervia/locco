@@ -44,8 +44,9 @@ vows.describe("locco", {
       //! Assert that the file is included in the results
       assert.include(locco("temp/*.js"), "temp/test.js")
 
-      //! Remove the temp directory
+      //! Remove the directories
       rm.sync("temp")
+      rm.sync("doc")
 
     },
 
@@ -65,11 +66,11 @@ vows.describe("locco", {
 
       //! Get the content as is should be, directly from Mustache
       handcrafted = handcraft({
-        template: "template/locco.html",
-        fileName: "test.js",
-        path: "temp",
-        content: locco.parse("var i;"),
-        breadcrumbs: "../"
+        template:      "template/locco.html",
+        fileName:      "test.js",
+        path:          "temp",
+        content:       locco.parse("var i;"),
+        breadcrumbs:   "../"
       })
 
       //! Assert that both are equal
@@ -79,27 +80,44 @@ vows.describe("locco", {
 
       //! Remove the temp directory
       rm.sync("temp")
+      rm.sync("doc")
+
     },
 
     'should copy the .css': function () {
-      mkpath.sync("temp");
-      fs.writeFileSync("temp/1.js", "var i;");
-      var files  = locco( "temp/*.js" );
 
-      var css = {
+      //! Create the temp directory
+      mkpath.sync("temp")
+
+      //! Write as simple javascript file
+      fs.writeFileSync("temp/test.js", "var i;")
+
+      //! Run locco
+      locco( "temp/*.js" )
+
+      //! Get the content of the css files
+      css = {
         source: fs.readFileSync("template/locco.css").toString(),
         destination: fs.readFileSync("doc/locco.css").toString()
       }
 
-      assert.equal(css.destination, css.source);
+      //! Compare them for equality
+      assert.equal(css.destination, css.source)
 
-      rm.sync("temp");
+      //! Remove the directories
+      rm.sync("temp")
+      rm.sync("doc")
+
     }
   },
 
+  // Pattern: `temp/*.js`
+  // File: `temp/test.js`
+  // Content: `var i;`
+  // Result: `doc/temp/test.js.html`
   'different destination folder': {
     'should do the same but for the other folder': function () {
-      mkpath.sync("temp");
+      mkpath.sync("temp")
       fs.writeFileSync("temp/1.js", "var i;");
       var files  = locco( "temp/*.js", {path: "docs"} );
       var result = fs.readFileSync("docs/temp/1.js.html").toString();
