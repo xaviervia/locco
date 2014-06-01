@@ -1,9 +1,11 @@
-var highlight = require("highlight.js"),
-    marked    = require("marked"),
-    fs        = require("fs"),
-    glob      = require("glob"),
-    mkpath    = require("mkpath"),
-    mustache  = require("mustache");
+"use strict"
+
+var highlight = require("highlight.js")
+var marked    = require("marked")
+var fs        = require("fs")
+var glob      = require("glob")
+var mkpath    = require("mkpath")
+var mustache  = require("mustache")
 
 //
 // locco
@@ -18,7 +20,7 @@ var highlight = require("highlight.js"),
 //
 // ### Installation
 //
-// `npm install git://github.com/xaviervia/locco.git --save`
+//     npm install locco --save
 //
 // Test
 // ----
@@ -28,43 +30,53 @@ var highlight = require("highlight.js"),
 // Usage
 // -----
 //
-// ### locco( String pattern [, Object options ] )
+// ### locco( pattern, options )
 //
-// To parse a series of JavaScript files using a [`minimatch`](//github.com/isaacs/minimatch)
-// pattern from the folders within the `js` directory. The resulting HTML files will be output in
+// Parses a series of files found using a [`glob`](//github.com/isaacs/minimatch)
+// pattern. The resulting HTML files are written in
 // the default `doc` directory.
+//
+// Here goes an example:
 //
 // ```js
 // var locco = require("locco");
 //
-// var listOfFiles = locco("js/**/*.js");
+// var documentedFiles = locco("js/**/*.js");
 // ```
 //
-// The `listOfFiles` variable will be an array containing the parsed files.
+// The `documentedFiles` variable will be an array containing the parsed files.
 //
-// > `locco` is an entirely synchronous tool.
+// > **locco** does everything synchronously. Why is that?
+// > Because locco is useful in contexts where asynchronicity means nothing
+// > but troble.
+// > Doc generation is intended to be atomic for each file in locco. Files
+// > are usually too many for you to be able to handle callbacks without
+// > serious acrobatics, and with no real benefit, we should you?
 //
-// ### Options
+// #### Options
 //
 // The second, optional argument allows you to configure both the output folder and
 // a base folder to be excluded from the hierarchy in the output files.
 //
-// #### `path`
+// ##### `output`
 //
-// Sets the path of the output folder.
+// Sets the path of the output folder. Default: **doc**
 //
 // ```js
 // var locco = require("locco");
 //
-// var listOfFiles = locco("js/**/*.js", {path: "documentation"});
+// var documentedFiles = locco("js/**/*.js", {output: "documentation"});
 // ```
 //
-// #### `base`
+// ##### `base`
 //
-// Sets the path to be excluded in the output files names. For example, if
-// your project source files are all contained in a `src` directory, setting
-// the pattern to `src/**/*js` and the `base` to `src` will produce the files
-// to be output directly into the `doc` directory discarding the `src` prefix.
+// Sets the path to be excluded in the output files names. Default is empty.
+//
+// For example, if your project source files are all contained in a `src`
+// directory, setting the pattern to `src/**/*js` and the `base` to `src`
+// will produce the files to be output directly into the `doc` directory
+// discarding the `src` prefix.
+//
 // A file named `src/data.js` will be parsed into `doc/data.js` instead of the
 // default behavior `doc/src/data.js`.
 //
@@ -74,25 +86,30 @@ var highlight = require("highlight.js"),
 // ```js
 // var locco = require("locco");
 //
-// var listOfFiles = locco("src/**/*.js", {base: "src"});
+// var documentedFiles = locco("src/**/*.js", {base: "src"});
 // ```
+var defaults = {
+  output: "doc",
+  base: ""
+}
+
 //
 // #### Arguments
 //
-// - String pattern
-// - _optional_ Object options
-//   - path: String destinationPath
-//   - base: String baseDirectoryToExclude
+// - `String` pattern
+// - _optional_ `Object` options
+//   - path: `String` destinationPath
+//   - base: `String` baseDirectoryToExclude
 //
 // #### Returns
 //
-// - Array parsedFiles
+// - `Array` parsedFiles
 //
-locco = function (pattern, options) {
+var locco = function (pattern, options) {
 
   //! Load some required default options
-  options       = options || locco.defaults;
-  options.path  = options.path || locco.defaults.path;
+  options       = options           || defaults;
+  options.output  = options.output  || defaults.output;
 
   //! Get the file list by using sync
   var fileList = glob.sync(pattern);
@@ -102,11 +119,11 @@ locco = function (pattern, options) {
     //! If there is a "base path" filter on,
     //! it should filter the base path in the destination file name
     if (options.base && options.base.length > 0 && file.indexOf(options.base) == 0)
-      destinationFileName = options.path + "/" +
+      destinationFileName = options.output + "/" +
         file.substring(options.base.length - 1) + ".html";
 
     //! If there is no "base path" filter, use the full path
-    else destinationFileName = options.path + "/" + file + ".html";
+    else destinationFileName = options.output + "/" + file + ".html";
 
     //! Get the current file content
     var content = fs.readFileSync(file).toString();
@@ -121,10 +138,10 @@ locco = function (pattern, options) {
 
     //! Obtain the breadcrumbs
     var breadcrumbs = destinationFileName
-      .substring(options.path.length + 1)
+      .substring(options.output.length + 1)
       .split("/")
       .slice(0, destinationFileName
-        .substring(options.path.length + 1)
+        .substring(options.output.length + 1)
         .split("/")
         .length - 1)
       .map(function (token) { return ".."; })
@@ -137,7 +154,7 @@ locco = function (pattern, options) {
     //! Prepare the data object for Mustache
     var data = {
       content: content,
-      path: folderPath.substring(options.path.length + 1),
+      path: folderPath.substring(options.output.length + 1),
       fileName: destinationFileName
         .substring(
           folderPath.length + 1,
@@ -156,7 +173,7 @@ locco = function (pattern, options) {
 
     //! Copy the CSS into the final folder
     fs.writeFileSync(
-      options.path + "/locco.css",
+      options.output + "/locco.css",
       fs.readFileSync(__dirname + "/template/locco.css") );
 
     //! Write the file
@@ -166,10 +183,6 @@ locco = function (pattern, options) {
   });
 
   return fileList;
-}
-
-locco.defaults = {
-  path: "doc",
 }
 
 
