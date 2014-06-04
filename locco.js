@@ -8,6 +8,11 @@ var mkpath    = require("mkpath")
 var mustache  = require("mustache")
 var Minimatch = require("minimatch").Minimatch
 
+var formatter = require("./src/formatter")
+
+var MARKDOWN = 0
+var CODE     = 1
+
 //
 // locco
 // ======
@@ -92,7 +97,10 @@ var Minimatch = require("minimatch").Minimatch
 // ```
 var defaults = {
   output: "doc",
-  includeBase: false
+  includeBase: false,
+  templateDir: __dirname + "/template",
+  language: "js",
+  comment: "//"
 }
 
 //
@@ -110,8 +118,18 @@ var defaults = {
 var locco = function (pattern, options) {
 
   //! Load some required default options
-  options         = options         || defaults
-  options.output  = options.output  || defaults.output
+  options             = options             || defaults
+  options.output      = options.output      || defaults.output
+  options.templateDir = options.templateDir || defaults.templateDir
+  options.language    = options.language    || defaults.language
+  options.comment     = options.comment     || defaults.comment
+
+  //! Get the template strings
+  options.templates = {
+    code: fs.readFileSync(options.templateDir + "/code.html").toString(),
+    main: fs.readFileSync(options.templateDir + "/main.html").toString(),
+    markdown: fs.readFileSync(options.templateDir + "/markdown.html").toString()
+  }
 
   //! Get base path if includeBase is disabled
   var base = []
@@ -149,11 +167,11 @@ var locco = function (pattern, options) {
     //! Get the destination file path
     destinationFilePath = options.output + "/" + filteredFile + ".html"
 
-    //! Get the current file contents
+    //! Get the source file contents
     var content = fs.readFileSync(file).toString()
 
     //! Parse it with locco into HTML
-    content = locco.parse(content)
+    content = locco.parse(content, options)
 
     //! Get the folder path for the destination file
     var folderPath = destinationFilePath.split("/")
@@ -177,8 +195,8 @@ var locco = function (pattern, options) {
 
     //! Prepare the data object for Mustache
     var data = {
-      content: content,
-      path: folderPath.substring(options.output.length + 1),
+      content:  content,
+      path:     folderPath.substring(options.output.length + 1),
       fileName: destinationFilePath
         .substring(
           folderPath.length + 1,
@@ -186,12 +204,8 @@ var locco = function (pattern, options) {
       breadcrumbs: breadcrumbs
     }
 
-    //! Get the Mustache template from the package's dir
-    var template = fs.readFileSync(__dirname +
-      "/template/locco.html").toString()
-
     //! Get the final HTML
-    var html = mustache.render(template, data)
+    var html = mustache.render(options.templates.main, data)
 
     //! Make sure the folder exists
     mkpath.sync(folderPath)
@@ -199,7 +213,7 @@ var locco = function (pattern, options) {
     //! Copy the CSS into the final folder
     fs.writeFileSync(
       options.output + "/locco.css",
-      fs.readFileSync(__dirname + "/template/locco.css") )
+      fs.readFileSync(options.templateDir + "/locco.css") )
 
     //! Write the file
     fs.writeFileSync(
@@ -218,106 +232,144 @@ var locco = function (pattern, options) {
 //
 // ### parse( String text [, String language] )
 //
-// Returns HTML code from the `text`, parsed with `marked` inside the comments and
-// with `highlight.js` for the rest of the code. If no language identifier is passed,
-// `js` is assumed.
+// Returns HTML code from the `text`, parsed with `marked` inside the comments
+// and with `highlight.js` for the rest of the code. If no language identifier
+// is passed, `js` is assumed.
 //
 // #### Arguments
 //
-// - String text
-// - _optional_ String language
+// - `String` text
+// - `Object` options
 //
 // #### Returns
 //
-// - String html
+// - `String` html
 //
-//
-locco.parse = function (text, language) {
-  var result  = "";
-  var stack   = [];
+locco.parse = function (text, options) {
 
-  text.split("\n").forEach(function (line, index, lines) {
+  //! Resulting string to be returned
+  var result  = ""
 
-    var current = {};
+  //! Temporary buffer of code tokens
+  var buffer   = []
 
-    //! There is a comment in here?
-    if (line.indexOf("//") != -1 && !locco.isQuoted(line.indexOf("//"), line) &&
-      line.substring(line.indexOf("//") + 2, line.indexOf("//") + 3) != "!") {
+  //! For each line in the text
+  text
+    .split("\n")
+    .forEach(function (line, index, lines) {
 
-      //! There is code prior to the markdown?
-      if (line.substring(0, line.indexOf("//")).trim().length > 0) {
+    //! Initialize the token for the current line
+    var current = {}
+
+    //! Is there a comment in here?
+    if (
+
+      //! ...there comment string is present
+      line.indexOf(options.comment) != -1 &&
+
+      //! ...it is not in a quotation
+      !locco.isQuoted(line.indexOf(options.comment), line) &&
+
+      //! ...it is not followed by the '!'
+      line.substring(
+        line.indexOf(options.comment) + 2,
+        line.indexOf(options.comment) + 3) != "!" ) {
+
+      //! Is there code in the line before to this comment?
+      if (
+
+        //! (is there something after trimming whitespace leftwards)
+        line
+          .substring(0, line.indexOf(options.comment))
+          .trim().length > 0) {
+
+        //! Store the prior code
         var priorCode = {
-          mode: "code",
-          text: line.substring(0, line.indexOf("//"))
+          mode: CODE,
+          text: line.substring(0, line.indexOf(options.comment))
         }
 
-        //! If there was something before and wasnt code, resolve and clean and
-        //! stack and resolve and clean
-        if (stack.length > 0 && stack[stack.length - 1].mode != "code") {
-          result += locco._resolve(stack, language);
-          result += locco._resolve([priorCode], language);
-          stack   = [];
+        //! Now that some code appeared in this line, we have to check if there
+        //! was documentation in the buffer (buffer has something that
+        //! is not code).
+        //!
+        //! If that is the case, we must format the buffer contents right now,
+        //! then format the code and then clean the buffer so we can
+        //! store the new documentation tokens in it.
+        if (buffer.length > 0 && buffer[buffer.length - 1].mode != CODE) {
+
+          //! Format the current buffer contents
+          result += formatter.markdown(buffer)
+
+          //! Format the mini buffer with just the code
+          result += formatter.code([priorCode], options)
+
+          //! Clean the buffer
+          buffer   = []
+
         }
 
-        //! If there was something before and was code, push
-        else if (stack.length > 0 && stack[stack.length - 1].mode == "code")
-          stack.push(priorCode);
+        //! If there was code in the buffer, push the current code
+        else if (buffer.length > 0 && buffer[buffer.length - 1].mode == CODE)
+          buffer.push(priorCode)
 
       }
 
-      current.mode = "markdown";
+      current.mode = MARKDOWN;
       current.text = line.substring(line.indexOf("//") + 3);
     }
 
     //! There is no comment, just javascript
     else {
-      current.mode = "code";
+      current.mode = CODE;
       current.text = line;
     }
 
     //! There is a previous item and is of different mode
-    if (index > 0 && stack[stack.length - 1].mode != current.mode) {
-      result += locco._resolve(stack, language);
-      stack = [];
+    if (index > 0 && buffer[buffer.length - 1].mode != current.mode) {
+      switch (buffer[buffer.length - 1].mode) {
+        case CODE:
+          result += formatter.code(buffer, options)
+          break
+        case MAIN:
+          result += formatter.markdown(buffer, options)
+          break
+      }
+
+      buffer = []
     }
 
-    //! Add to the stack
-    stack.push(current);
+    //! Add to the buffer
+    buffer.push(current);
 
     //! Was it the last?
     if (index == lines.length - 1)
-      result += locco._resolve(stack, language);
+      switch (buffer[buffer.length - 1].mode) {
+      case MARKDOWN:
+          result += formatter.markdown(buffer, options)
+          break
+        case CODE:
+          result += formatter.code(buffer, options)
+      }
+
 
   });
 
   return result.substring(1);
 }
 
-locco._resolve = function (stack, language) {
+locco._resolve = function (buffer, options) {
 
   //! Resolve joining with "\n";
-  switch(stack[stack.length - 1].mode) {
-    case "markdown":
-      return "\n" +
-        marked(
-          stack.map(function (token) {
-            return token.text;
-          })
-          .join("\n"));
+  switch(buffer[buffer.length - 1].mode) {
+  case MARKDOWN:
+      return formatter.markdown(buffer)
 
-      break;
-
-    case "code":
-      return "\n" + mustache.render(
-        fs.readFileSync( __dirname + "/template/code.html").toString(),
-        { content: highlight.highlight(
-            language ? language : "js",
-            stack.map(function (token) {
-              return token.text; })
-            .join("\n"))
-          .value });
-      break;
-
+    case CODE:
+      return formatter.code(buffer, {
+        language: options.language ? options.language : "js",
+        template: fs.readFileSync(options.templateDir + "/code.html").toString()
+      })
   }
 }
 

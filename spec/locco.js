@@ -8,11 +8,20 @@ mustache  = require("mustache")
 rm        = require("rimraf")
 mkpath    = require("mkpath")
 
+options = {
+  comment: "//",
+  language: "js",
+  templates: {
+    code: fs.readFileSync("template/code.html").toString(),
+    main: fs.readFileSync("template/main.html").toString(),
+    markdown: fs.readFileSync("template/markdown.html").toString()
+  }
+}
 
-handcraft = function (options) {
+handcraft = function (data) {
   return mustache.render(
-    fs.readFileSync(options.template).toString(),
-    options )
+    options.templates.main,
+    data )
 }
 
 // locco API test battery
@@ -71,7 +80,7 @@ vows.describe("locco", {
         template:      "template/locco.html",
         fileName:      "test.js",
         path:          "",
-        content:       locco.parse("var i;"),
+        content:       locco.parse("var i;", options),
         breadcrumbs:   ""
       })
 
@@ -128,17 +137,21 @@ vows.describe("locco", {
       fs.writeFileSync("temp/test.js", "var i;")
 
       //! Run locco with docs as output directory
-      locco( "temp/*.js", {output: "docs"} )
+      locco( "temp/*.js", { output: "docs" } )
 
       //! Get the result file from the new dir
       locced = fs.readFileSync("docs/test.js.html").toString();
+
+      //! DIY clone for changing options
+      var altOptions     = JSON.parse(JSON.stringify(options))
+      altOptions.output  = "docs"
 
       //! Handcraft the same file
       handcrafted = handcraft({
         template:    "template/locco.html",
         fileName:    "test.js",
         path:        "",
-        content:     locco.parse("var i;"),
+        content:     locco.parse("var i;", altOptions),
         breadcrumbs: ""
       })
 
@@ -178,7 +191,7 @@ vows.describe("locco", {
         template:    "template/locco.html",
         fileName:    "temp.js",
         path:        "",
-        content:     locco.parse("8"),
+        content:     locco.parse("8", options),
         breadcrumbs: ""
       })
 
@@ -217,12 +230,16 @@ vows.describe("locco", {
       //! Get the file from where it was expected
       locced = fs.readFileSync("doc/temp/test.js.html").toString()
 
+      //! DIY clone for changing options
+      var altOptions          = JSON.parse(JSON.stringify(options))
+      altOptions.includeBase  = true
+
       //! Handcraft the result...
       handcrafted = handcraft({
         template:     "template/locco.html",
         fileName:     "test.js",
         path:         "temp",
-        content:      locco.parse("8"),
+        content:      locco.parse("8", altOptions),
         breadcrumbs:  "../"
       })
 
@@ -239,7 +256,15 @@ vows.describe("locco", {
 
   'extension exclusion': "pending",
 
-  'change template html': "pending",
+  'configure templates folder': {
+    'locco.html in the folder': {
+      'should build with the alternative template': 'pending'
+    },
+
+    'code.html in the folder': {
+      'should build the code with the alternative template': 'pending'
+    }
+  },
 
   'add files to generation': "pending",
 
