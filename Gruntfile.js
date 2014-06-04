@@ -13,10 +13,6 @@ module.exports = function(grunt) {
       'is-quoted': {
         src: ["spec/locco/is-quoted.js"]
       },
-      'read-file': {
-        src: ["spec/locco/read-file.js"]
-      },
-
       main: {
         src: ["spec/locco.js"]
       }
@@ -26,7 +22,7 @@ module.exports = function(grunt) {
   grunt.registerTask("clean", "Clean after yourself", function () {
     ['tmp', 'doc', 'docs'].forEach(function (dir) {
       grunt.log.writeln("Removing dir `" + dir + "`");
-      rm.sync(dir);      
+      rm.sync(dir);
     });
   });
 

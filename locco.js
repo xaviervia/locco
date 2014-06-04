@@ -340,26 +340,6 @@ locco.parse = function (text, options) {
 }
 
 //
-// readFile( String path )
-// -----------------------
-//
-// Reads and parses the contents of the file. Does this always synchronously.
-// Returns the HTML formatted content.
-//
-// #### Arguments
-//
-// - String path
-//
-// #### Returns
-//
-// - String html
-//
-//
-locco.readFile = function (path) {
-  this.parse(
-    fs.readFileSync(path))
-}
-
 //
 // isQuoted( Integer position, String text )
 // -----------------------------------------------------
