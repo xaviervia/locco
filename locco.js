@@ -1,7 +1,5 @@
 "use strict"
 
-var highlight = require("highlight.js")
-var marked    = require("marked")
 var fs        = require("fs")
 var glob      = require("glob")
 var mkpath    = require("mkpath")
@@ -9,9 +7,6 @@ var mustache  = require("mustache")
 var Minimatch = require("minimatch").Minimatch
 
 var formatter = require("./src/formatter")
-
-var MARKDOWN = 0
-var CODE     = 1
 
 //
 // locco
@@ -285,7 +280,7 @@ locco.parse = function (text, options) {
 
         //! Store the prior code
         var priorCode = {
-          mode: CODE,
+          mode: "code",
           text: line.substring(0, line.indexOf(options.comment))
         }
 
@@ -296,7 +291,7 @@ locco.parse = function (text, options) {
         //! If that is the case, we must format the buffer contents right now,
         //! then format the code and then clean the buffer so we can
         //! store the new documentation tokens in it.
-        if (buffer.length > 0 && buffer[buffer.length - 1].mode != CODE) {
+        if (buffer.length > 0 && buffer[buffer.length - 1].mode != "code") {
 
           //! Format the current buffer contents
           result += formatter.markdown(buffer)
@@ -310,31 +305,24 @@ locco.parse = function (text, options) {
         }
 
         //! If there was code in the buffer, push the current code
-        else if (buffer.length > 0 && buffer[buffer.length - 1].mode == CODE)
+        else if (buffer.length > 0 && buffer[buffer.length - 1].mode == "code")
           buffer.push(priorCode)
 
       }
 
-      current.mode = MARKDOWN;
-      current.text = line.substring(line.indexOf("//") + 3);
+      current.mode = "markdown"
+      current.text = line.substring(line.indexOf("//") + 3)
     }
 
     //! There is no comment, just javascript
     else {
-      current.mode = CODE;
-      current.text = line;
+      current.mode = "code"
+      current.text = line
     }
 
     //! There is a previous item and is of different mode
     if (index > 0 && buffer[buffer.length - 1].mode != current.mode) {
-      switch (buffer[buffer.length - 1].mode) {
-        case CODE:
-          result += formatter.code(buffer, options)
-          break
-        case MAIN:
-          result += formatter.markdown(buffer, options)
-          break
-      }
+      result += formatter[buffer[buffer.length - 1].mode](buffer, options)
 
       buffer = []
     }
@@ -344,33 +332,11 @@ locco.parse = function (text, options) {
 
     //! Was it the last?
     if (index == lines.length - 1)
-      switch (buffer[buffer.length - 1].mode) {
-      case MARKDOWN:
-          result += formatter.markdown(buffer, options)
-          break
-        case CODE:
-          result += formatter.code(buffer, options)
-      }
+      result += formatter[buffer[buffer.length - 1].mode](buffer, options)
 
+  })
 
-  });
-
-  return result.substring(1);
-}
-
-locco._resolve = function (buffer, options) {
-
-  //! Resolve joining with "\n";
-  switch(buffer[buffer.length - 1].mode) {
-  case MARKDOWN:
-      return formatter.markdown(buffer)
-
-    case CODE:
-      return formatter.code(buffer, {
-        language: options.language ? options.language : "js",
-        template: fs.readFileSync(options.templateDir + "/code.html").toString()
-      })
-  }
+  return result.substring(1)
 }
 
 //
