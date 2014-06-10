@@ -73,7 +73,7 @@ vows.describe("locco", {
       locco( "temp/*.js" )
 
       //! Get the file content
-      locced = fs.readFileSync("doc/test.js.html").toString()
+      locced = fs.readFileSync("doc/test.html").toString()
 
       //! Get the content as is should be, directly from Mustache
       handcrafted = handcraft({
@@ -140,7 +140,7 @@ vows.describe("locco", {
       locco( "temp/*.js", { output: "docs" } )
 
       //! Get the result file from the new dir
-      locced = fs.readFileSync("docs/test.js.html").toString();
+      locced = fs.readFileSync("docs/test.html").toString();
 
       //! DIY clone for changing options
       var altOptions     = JSON.parse(JSON.stringify(options))
@@ -207,7 +207,43 @@ vows.describe("locco", {
   },
 
   'file from deep without wildcard': {
-    'the file name should not be erased': 'pending'
+    'the file name should not be erased': function () {
+
+      //! Create the temp directory
+      mkpath.sync("temp/deep")
+
+      //! Write a simple javascript file
+      fs.writeFileSync("temp/deep/test.js", "var i;")
+
+      //! Run locco
+      locco( "temp/deep/test.js" )
+
+      //! Get the result file from the new dir
+      locced = fs.readFileSync("docs/temp/deep/test.html").toString();
+
+      //! DIY clone for changing options
+      var altOptions     = JSON.parse(JSON.stringify(options))
+      altOptions.output  = "docs"
+
+      //! Handcraft the same file
+      handcrafted = handcraft({
+        template:    "template/locco.html",
+        fileName:    "test.js",
+        path:        "",
+        content:     locco.parse("var i;", altOptions),
+        breadcrumbs: ""
+      })
+
+      //! Assert they are the same
+      assert.equal(
+        handcrafted,
+        locced )
+
+      //! Remove the directories
+      rm.sync("temp")
+      rm.sync("docs")
+
+    }
   },
 
   'base folder name inclusion': {
@@ -254,7 +290,41 @@ vows.describe("locco", {
     }
   },
 
-  'extension exclusion': "pending",
+  'extension inclusion': {
+    'should keep the extension': function () {
+
+      //! Create the temp directory
+      mkpath.sync("temp")
+
+      //! Create the demo file test.js with only javascript content
+      fs.writeFileSync("temp/test.js", "var i;")
+
+      //! Run locco
+      locco( "temp/*.js", { includeExtension: true } )
+
+      //! Get the file content
+      locced = fs.readFileSync("doc/test.js.html").toString()
+
+      //! Get the content as is should be, directly from Mustache
+      handcrafted = handcraft({
+        template:      "template/locco.html",
+        fileName:      "test.js",
+        path:          "",
+        content:       locco.parse("var i;", options),
+        breadcrumbs:   ""
+      })
+
+      //! Assert that both are equal
+      assert.equal(
+        handcrafted,
+        locced )
+
+      //! Remove the temp directory
+      rm.sync("temp")
+      rm.sync("doc")
+
+    }
+  },
 
   'configure templates folder': {
     'locco.html in the folder': {

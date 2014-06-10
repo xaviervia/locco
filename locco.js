@@ -93,6 +93,7 @@ var formatter = require("./src/formatter")
 var defaults = {
   output: "doc",
   includeBase: false,
+  includeExtension: false,
   templateDir: __dirname + "/template",
   language: "js",
   comment: "//"
