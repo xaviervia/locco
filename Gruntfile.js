@@ -35,5 +35,7 @@ module.exports = function(grunt) {
     require("./locco")("locco.js");
   });
 
+  grunt.registerTask("test", ["vows"]);
+  
   grunt.registerTask("default", ["clean", "vows", "doc"]);
 };

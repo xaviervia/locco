@@ -10,6 +10,9 @@
     "mkpath": "~0.1.0",
     "mustache": "~0.8.1"
   },
+  "scripts": {
+    "test": "grunt test"
+  },
   "devDependencies": {
     "vows": "~0.7.0",
     "grunt": "~0.4.2",
