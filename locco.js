@@ -1,0 +1,20 @@
+var spec              = require("washington")
+var assert            = require("assert")
+var FileReader        = require("./src/file-reader")
+var Liner             = require("./src/liner")
+var Parser            = require("./src/parser")
+var CommentExtractor  = require("./src/comment-extractor")
+
+spec("should show me aprox what I'm looking for", function () {
+  new FileReader()
+    .on(new Liner()
+      .on(new Parser({ commentStart: "//", escapeSequence: "!" })
+        .on(new CommentExtractor()
+          .on("comments", function (comments) {
+            console.log(comments)
+          })
+        )
+      )
+    )
+    .go({ pattern: "example/*.js" })
+})
