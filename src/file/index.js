@@ -18,6 +18,11 @@ var File = function () {
 
 File.prototype = Object.create(Mediador.prototype)
 
+//
+// file
+// ----
+//
+// Proxies the call of file to an event called 'file'
 File.prototype.file = function (file) {
   this.emit("file", [file]) }
 
