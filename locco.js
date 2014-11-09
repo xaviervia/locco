@@ -1,20 +1,29 @@
+// locco
+// =====
+//
+//
 var spec              = require("washington")
 var assert            = require("assert")
-var FileReader        = require("./src/file-reader")
-var Liner             = require("./src/liner")
+var File              = require("./src/file")
 var Parser            = require("./src/parser")
-var CommentExtractor  = require("./src/comment-extractor")
 
-spec("should show me aprox what I'm looking for", function () {
-  new FileReader()
-    .on(new Liner()
-      .on(new Parser({ commentStart: "//", escapeSequence: "!" })
-        .on(new CommentExtractor()
-          .on("comments", function (comments) {
-            console.log(comments)
-          })
-        )
-      )
-    )
-    .go({ pattern: "example/*.js" })
-})
+var toMD = function () {
+  var file = new File
+
+  file.on(
+    new Parser({
+      commentStart: "//",
+      escapeSequence: "!"
+    })
+
+    .on("comment", function (comment) {
+      var targetFile = comment.file.path.replace(/\.[0-9A-Za-z].+?$/, ".md")
+      targetFile = targetFile.replace(/index\.md$/, "README.md")
+      file.emit("post", [targetFile, comment.comment + "\n"])
+    })
+  )
+
+  file.emit("get", ["**/*.js"])
+}
+
+toMD()
