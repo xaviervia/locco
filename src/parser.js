@@ -115,7 +115,7 @@ Parser.prototype.line = function (options) {
   this.emit("comment", [argument])
 }
 
-spec("should emit as code by default and forward extras", function () {
+spec("should emit as 'code' by default and forward extras", function () {
   //! given
   var options = {
     line: "Some content",
@@ -143,7 +143,7 @@ spec("should emit as code by default and forward extras", function () {
   assert.equal(listener.code.calls[0].extra, options.extra)
 })
 
-spec("should emit as comment when starts with comment token", function () {
+spec("should emit as 'comment' when starts with comment token", function () {
   //! given
   var options = { line: "// comment" }
   var listener = {
@@ -165,7 +165,7 @@ spec("should emit as comment when starts with comment token", function () {
   assert.equal(listener.comment.calls[0].comment, "comment")
 })
 
-spec("should emit code and comment if comment starts in the middle", function () {
+spec("should emit 'code' and 'comment' if comment starts in the middle", function () {
   //! given
   var options = { line: "some code # comment" }
   var listener = {
@@ -192,7 +192,7 @@ spec("should emit code and comment if comment starts in the middle", function ()
   assert.equal(listener.comment.calls[0].comment, "comment")
 })
 
-spec("should not emit code if empty", function () {
+spec("should not emit 'code' if empty", function () {
   //! given
   var options = { line: "   # comment" }
   var listener = {
