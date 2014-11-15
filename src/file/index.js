@@ -4,17 +4,18 @@
 // File adapter for Mediador. Concentrates a Reader and a Writer which
 // expose a basic API for reading the content of files using a glob pattern and
 // writing to them with events.
-var Reader    = require("./reader")
-var Writer    = require("./writer")
 var Mediador  = require("mediador")
 
 var example = require("washington")
 var assert  = require("assert")
 
 var File = function () {
-  this.on(new Writer)
-  this.on(new Reader().on(this))
+  this.on(new File.Writer)
+  this.on(new File.Reader().on(this))
 }
+
+File.Reader = require("./reader")
+File.Writer = require("./writer")
 
 File.prototype = Object.create(Mediador.prototype)
 

@@ -10,7 +10,7 @@ Writer.prototype = Object.create(Mediador.prototype)
 Writer.prototype.post = function (path, piece) {
   this.stream = this.stream || {}
   this.stream[path] = this.stream[path] ||
-    fs.createWriteStream(path, { flags: "a"})
+    fs.createWriteStream(path, { flags: "w"})
 
   this.stream[path].write(piece)
 
@@ -36,7 +36,7 @@ example("should append into the corresponding file, chainable", function () {
 
   assert.equal(chainable, fileWriter)
   assert.equal(fs.createWriteStream.calls[0][0], "tmp/file.txt")
-  assert.equal(fs.createWriteStream.calls[0][1].flags, "a")
+  assert.equal(fs.createWriteStream.calls[0][1].flags, "w")
   assert.equal(listener.write.calls[0], "some piece")
 
   fs.createWriteStream = hijack.createWriteStream

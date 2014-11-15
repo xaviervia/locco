@@ -1,7 +1,3 @@
-// Reader
-// ======
-//
-// Reader
 var example   = require("washington")
 var assert    = require("assert")
 var fs        = require("fs")
