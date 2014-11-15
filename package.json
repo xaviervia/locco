@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "glob": "^4.0.6",
-    "mediador": "^0.1.2"
+    "mediador": "^0.1.2",
+    "washington": "^0.7.0"
   }
 }
