@@ -104,7 +104,7 @@ example("should replace index for README.md", function () {
 })
 
 
-example("General README path should be configurable", function () {
+example("general README path should be configurable", function () {
   var listener = {
     post: function (target, line) {
       (this.post.calls = this.post.calls || [])
