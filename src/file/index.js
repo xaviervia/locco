@@ -20,13 +20,19 @@ File.Writer = require("./writer")
 File.prototype = Object.create(Mediador.prototype)
 
 //
-// file
-// ----
+// Methods
+// -------
 //
-// Proxies the call of file to an event called 'file'
+// ### file
+//
+// Emits a `file` event with the provided argument.
+//
 File.prototype.file = function (file) {
   this.emit("file", [file]) }
 
+// ### line
+//
+// Emits a `line` event with the provided argument.
 File.prototype.line = function (line) {
   this.emit("line", [line]) }
 
