@@ -23,12 +23,6 @@ process.argv.forEach(function (argument, index) {
   else if (match = argument.match(/^--([a-z]+)$/))
     options[match[1]] = true
 
-  //! File name to match
-  else
-    interpolated = text
-      .replace(
-        "{{file}}",
-        process.argv[2] )
 })
 
 options.escapeSequence  = options.escape || "!"
