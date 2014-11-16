@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "locco.js",
+  "bin": {
+    "locco": "./bin/locco"
+  },
   "scripts": {
     "test": "washington locco.js"
   },

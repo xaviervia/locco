@@ -8,7 +8,7 @@ locco({
   commentStart: "//",
   escapeSequence: "!",
   source: "**/*.js",
-  adapter: new locco.Adapter.CommentToMarkdown({
+  adapter: new (require("locco-" + "markdown"))({
     readme: "locco.js"
   })
 })

@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+var locco = require("../locco")
+
+var options         = {}
+var adapterOptions  = {}
+
+//! Pre process command line arguments
+process.argv.forEach(function (argument, index) {
+  var match
+
+  if (index < 2) return
+
+  //! Match assignable arguments
+  if (match = argument.match(/^--([a-z]+)=(.+)$/))
+    options[match[1]] = isNaN(+match[2]) ? match[2] : +match[2]
+
+  //! Match adapter arguments
+  if (match = argument.match(/^--adapter-([a-z]+)=(.+)$/))
+    adapterOptions[match[1]] = isNaN(+match[2]) ? match[2] : +match[2]
+
+  //! Match flags without argument
+  else if (match = argument.match(/^--([a-z]+)$/))
+    options[match[1]] = true
+
+  //! File name to match
+  else
+    interpolated = text
+      .replace(
+        "{{file}}",
+        process.argv[2] )
+})
+
+options.escapeSequence  = options.escape || "!"
+options.commentStart    = options.comment || "//"
+options.source          = options.source
+options.adapter         = new (require("locco-" + options.adapter))(adapterOptions)
+
+locco(options)
