@@ -20,7 +20,6 @@ var locco = function (options) {
 
 locco.File              = require("./src/file")
 locco.Parser            = require("./src/parser")
-locco.Adapter           = require("./src/adapter")
 
 module.exports = locco
 
