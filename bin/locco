@@ -12,11 +12,11 @@ process.argv.forEach(function (argument, index) {
   if (index < 2) return
 
   //! Match assignable arguments
-  if (match = argument.match(/^--([a-z]+)=(.+)$/))
+  if (match = argument.match(/^--([a-zA-Z]+)=(.+)$/))
     options[match[1]] = isNaN(+match[2]) ? match[2] : +match[2]
 
   //! Match adapter arguments
-  if (match = argument.match(/^--adapter-([a-z]+)=(.+)$/))
+  if (match = argument.match(/^--adapter-([a-zA-Z]+)=(.+)$/))
     adapterOptions[match[1]] = isNaN(+match[2]) ? match[2] : +match[2]
 
   //! Match flags without argument
