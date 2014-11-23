@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
-var locco = require("../locco")
+var locco     = require("../locco")
+var metadata  = require("../package")
 
 var options         = {}
 var adapterOptions  = {}
+
+//! Log version and quit if -v flag is found
+if (process.argv.indexOf("-v")) {
+  console.log(metadata.version)
+  process.exit()
+}
 
 //! Pre process command line arguments
 process.argv.forEach(function (argument, index) {
