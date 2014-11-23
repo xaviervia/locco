@@ -9,18 +9,18 @@
 // -----
 //
 // ```sh
-// locco --adapter=markdown --source=**/*.js --commentStart=// \
-//       --escapeSequence=! --adapter-readme=locco.js
+// locco --adapter=markdown --source=**/*.js --comment=// \
+//       --escape=! --adapter-readme=locco.js
 // ```
 //
 // - `adapter`: The adapter to be used. Locco searches for adapter matching the
 //   `locco-<name>` pattern. Install markdown adapter with `npm install
 //   -g locco-markdown`
 // - `source`: The glob pattern matching the files to be parsed.
-// - _optional_ `commentStart`: Start of the comment line. Defaults to `//`
-// - _optional_ `escapeSequence`: Characters that right after the start of
+// - _optional_ `comment`: Start of the comment line. Defaults to `//`
+// - _optional_ `escape`: Characters that right after the start of
 //   comment indicate that the comment is not documentation.
-// - _dependant on adapter_ `adapter-<property>`: option sent to the adapter
+// - _dependant on adapter_ `adapter-<property>`: option(s) sent to the adapter
 //
 // Or programmatically:
 //
@@ -37,6 +37,8 @@
 //   })
 // })
 // ```
+//
+// > When used programmatically, all properties are required.
 //
 // Installation
 // ------------
